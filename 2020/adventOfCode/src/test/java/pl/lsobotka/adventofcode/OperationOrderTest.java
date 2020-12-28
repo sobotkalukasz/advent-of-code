@@ -4,18 +4,14 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class OperationOrderTest {
+public class OperationOrderTest extends BaseTest {
 
-    private static Stream<Arguments> mathData(){
+    private static Stream<Arguments> mathData() {
         return Stream.of(
                 Arguments.of("1 + 2 * 3 + 4 * 5 + 6", 71D),
                 Arguments.of("2 * 3 + (4 * 5)", 26D),
@@ -35,26 +31,23 @@ public class OperationOrderTest {
         assertEquals(expected, actual);
     }
 
-    private static Stream<Arguments> mathDataFile(){
+    private static Stream<Arguments> mathDataFile() {
         return Stream.of(
-                Arguments.of("src/test/resources/OperationOrder", 5374004645253L)
+                Arguments.of("OperationOrder", 5374004645253L)
         );
     }
 
     @ParameterizedTest
     @MethodSource("mathDataFile")
-    public void mathDataFileTest(String path, long expected) throws IOException {
-
-        BufferedReader bufferedReader = new BufferedReader(new FileReader(path));
-        List<String> data = bufferedReader.lines().collect(Collectors.toList());
-        bufferedReader.close();
+    public void mathDataFileTest(String fileName, long expected) throws Exception {
+        List<String> input = getFileInput(fileName);
 
         OperationOrder oo = new OperationOrder();
-        long sum = data.stream().mapToLong(oo::calculate).sum();
+        long sum = input.stream().mapToLong(oo::calculate).sum();
         assertEquals(expected, sum);
     }
 
-    private static Stream<Arguments> mathWeirdData(){
+    private static Stream<Arguments> mathWeirdData() {
         return Stream.of(
                 Arguments.of("1 + 2 * 3 + 4 * 5 + 6", 231),
                 Arguments.of("2 * 3 + (4 * 5)", 46),
@@ -75,22 +68,19 @@ public class OperationOrderTest {
         assertEquals(expected, actual);
     }
 
-    private static Stream<Arguments> mathWeirdDataFile(){
+    private static Stream<Arguments> mathWeirdDataFile() {
         return Stream.of(
-                Arguments.of("src/test/resources/OperationOrder", 88782789402798L)
+                Arguments.of("OperationOrder", 88782789402798L)
         );
     }
 
     @ParameterizedTest
     @MethodSource("mathWeirdDataFile")
-    public void mathWeirdDataFileTest(String path, long expected) throws IOException {
-
-        BufferedReader bufferedReader = new BufferedReader(new FileReader(path));
-        List<String> data = bufferedReader.lines().collect(Collectors.toList());
-        bufferedReader.close();
+    public void mathWeirdDataFileTest(String fileName, long expected) throws Exception {
+        List<String> input = getFileInput(fileName);
 
         OperationOrder oo = new OperationOrder();
-        long sum = data.stream().mapToLong(oo::calculateWeird).sum();
+        long sum = input.stream().mapToLong(oo::calculateWeird).sum();
         assertEquals(expected, sum);
     }
 }

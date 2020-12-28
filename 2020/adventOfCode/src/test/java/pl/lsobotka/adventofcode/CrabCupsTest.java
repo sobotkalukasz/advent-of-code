@@ -12,8 +12,8 @@ public class CrabCupsTest {
 
     private static Stream<Arguments> cups() {
         return Stream.of(
-                Arguments.of("389125467", 10,  "92658374"),
-                Arguments.of("389125467", 100,  "67384529"),
+                Arguments.of("389125467", 10, "92658374"),
+                Arguments.of("389125467", 100, "67384529"),
                 Arguments.of("398254716", 100, "45798623")
         );
     }
@@ -36,7 +36,7 @@ public class CrabCupsTest {
 
     @ParameterizedTest
     @MethodSource("cupsAdvanced")
-    public void cupsAdvancedTest(String input, int size,  int moves, long expected) {
+    public void cupsAdvancedTest(String input, int size, int moves, long expected) {
 
         CrabCups crabCups = new CrabCups(input, size);
         long actual = crabCups.playAdvancedGame(moves);
