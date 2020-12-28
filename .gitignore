@@ -1,3 +1,4 @@
 *.class
 /2019/advent-of-code/.idea/workspace.xml
+/2019/advent-of-code/target
 /2020/adventOfCode/target
