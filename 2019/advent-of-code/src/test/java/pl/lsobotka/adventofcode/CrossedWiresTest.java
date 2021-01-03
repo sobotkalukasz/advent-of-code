@@ -61,4 +61,22 @@ public class CrossedWiresTest extends BaseTest {
         int actual = wires.calcFewestSteps(firstPaths, secondPaths);
         assertEquals(expected, actual);
     }
+
+    private static Stream<Arguments> fewestStepsFile() {
+        return Stream.of(
+                Arguments.of("CrossedWires", 4158)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("fewestStepsFile")
+    public void fewestStepsFileTest(String fileName, int expected) throws Exception {
+        List<String> input = getFileInput(fileName);
+        List<String> firstPaths = Stream.of(input.get(0).split(",")).collect(Collectors.toList());
+        List<String> secondPaths = Stream.of(input.get(1).split(",")).collect(Collectors.toList());
+
+        CrossedWires wires = new CrossedWires();
+        int actual = wires.calcFewestSteps(firstPaths, secondPaths);
+        assertEquals(expected, actual);
+    }
 }
