@@ -3,6 +3,9 @@ package pl.lsobotka.adventofcode;
 import java.util.*;
 import java.util.function.Supplier;
 
+/*
+ * https://adventofcode.com/2019/day/3
+ * */
 public class CrossedWires {
 
     private static final char LEFT = 'L';
