@@ -1,0 +1,71 @@
+package pl.lsobotka.adventofcode;
+
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+public class SunnyAsteroids {
+
+    private static final int STOP = 99;
+    private static final int ADD = 1;
+    private static final int MULTIPLY = 2;
+    private static final int INPUT = 3;
+    private static final int OUTPUT = 4;
+
+    private static final int POSITION_MODE = 0;
+
+    Deque<Integer> input;
+    List<Integer> output;
+    int[] program;
+
+
+    public SunnyAsteroids(int[] instructions, Integer... input) {
+        program = instructions;
+        this.input = Stream.of(input).collect(Collectors.toCollection(LinkedList::new));
+        this.output = new ArrayList<>();
+    }
+
+    public List<Integer> execute() {
+        int opIndex = -1;
+        while (program[++opIndex] != STOP) {
+            opIndex = executeOperation(opIndex);
+        }
+        return output;
+    }
+
+    private int executeOperation(int index) {
+        int opCode = program[index];
+        if (opCode == INPUT) program[program[++index]] = input.removeFirst();
+        else if (opCode == OUTPUT) output.add(program[program[++index]]);
+        else if (opCode == ADD || opCode == MULTIPLY) {
+            int arg1 = program[program[++index]];
+            int arg2 = program[program[++index]];
+            program[program[++index]] = opCode == ADD ? arg1 + arg2 : arg1 * arg2;
+        } else index = executeComplexOperation(index);
+        return index;
+    }
+
+    private int executeComplexOperation(int index) {
+        String op = String.valueOf(program[index]);
+        System.out.println(op);
+        int operation = Integer.parseInt(op.substring(op.length() - 2));
+        int[] mode = new int[]{0, 0, 0};
+
+        for (int i = op.length() - 3, j = 0; i >= 0; i--, j++) {
+            mode[j] = Integer.parseInt(String.valueOf(op.charAt(i)));
+        }
+        if (operation == OUTPUT) {
+            output.add(mode[0] == POSITION_MODE ? program[program[++index]] : program[++index]);
+        } else {
+            int arg1 = mode[0] == POSITION_MODE ? program[program[++index]] : program[++index];
+            int arg2 = mode[1] == POSITION_MODE ? program[program[++index]] : program[++index];
+            int result = operation == ADD ? arg1 + arg2 : arg1 * arg2;
+            if (mode[2] == POSITION_MODE) program[program[++index]] = result;
+            else program[++index] = result;
+        }
+        return index;
+    }
+}
