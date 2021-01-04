@@ -37,20 +37,19 @@ public class SunnyAsteroids {
     }
 
     private int executeOperation(int index) {
-        int opCode = program[index];
-        if (opCode == INPUT) program[program[++index]] = input.removeFirst();
-        else if (opCode == OUTPUT) output.add(program[program[++index]]);
-        else if (opCode == ADD || opCode == MULTIPLY) {
+        int operation = program[index];
+        if (operation == INPUT) program[program[++index]] = input.removeFirst();
+        else if (operation == OUTPUT) output.add(program[program[++index]]);
+        else if (operation == ADD || operation == MULTIPLY) {
             int arg1 = program[program[++index]];
             int arg2 = program[program[++index]];
-            program[program[++index]] = opCode == ADD ? arg1 + arg2 : arg1 * arg2;
+            program[program[++index]] = operation == ADD ? arg1 + arg2 : arg1 * arg2;
         } else index = executeComplexOperation(index);
         return index;
     }
 
     private int executeComplexOperation(int index) {
         String op = String.valueOf(program[index]);
-        System.out.println(op);
         int operation = Integer.parseInt(op.substring(op.length() - 2));
         int[] mode = new int[]{0, 0, 0};
 
