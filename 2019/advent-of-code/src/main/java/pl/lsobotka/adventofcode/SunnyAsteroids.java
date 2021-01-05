@@ -14,6 +14,10 @@ public class SunnyAsteroids {
     private static final int MULTIPLY = 2;
     private static final int INPUT = 3;
     private static final int OUTPUT = 4;
+    private static final int JUMP_IF_TRUE = 5;
+    private static final int JUMP_IF_FALSE = 6;
+    private static final int LESS = 7;
+    private static final int EQUALS = 8;
 
     private static final int POSITION_MODE = 0;
 
@@ -40,12 +44,26 @@ public class SunnyAsteroids {
         int operation = program[index];
         if (operation == INPUT) program[program[++index]] = input.removeFirst();
         else if (operation == OUTPUT) output.add(program[program[++index]]);
-        else if (operation == ADD || operation == MULTIPLY) {
+        else if (isSimplyCode(operation)) {
             int arg1 = program[program[++index]];
             int arg2 = program[program[++index]];
-            program[program[++index]] = operation == ADD ? arg1 + arg2 : arg1 * arg2;
+            if (isJumpOperation(operation)) {
+                if (operation == JUMP_IF_TRUE && arg1 != 0) index = arg2 - 1;
+                if (operation == JUMP_IF_FALSE && arg1 == 0) index = arg2 - 1;
+             } else{
+                int result = 0;
+                if (operation == ADD) result = arg1 + arg2;
+                if (operation == MULTIPLY) result = arg1 * arg2;
+                if (operation == LESS) result = arg1 < arg2 ? 1 : 0;
+                if (operation == EQUALS) result = arg1 == arg2 ? 1 : 0;
+                program[program[++index]] = result;
+            }
         } else index = executeComplexOperation(index);
         return index;
+    }
+
+    private boolean isSimplyCode(int code) {
+        return code == ADD || code == MULTIPLY || code == JUMP_IF_TRUE || code == JUMP_IF_FALSE || code == LESS || code == EQUALS;
     }
 
     private int executeComplexOperation(int index) {
@@ -61,10 +79,23 @@ public class SunnyAsteroids {
         } else {
             int arg1 = mode[0] == POSITION_MODE ? program[program[++index]] : program[++index];
             int arg2 = mode[1] == POSITION_MODE ? program[program[++index]] : program[++index];
-            int result = operation == ADD ? arg1 + arg2 : arg1 * arg2;
-            if (mode[2] == POSITION_MODE) program[program[++index]] = result;
-            else program[++index] = result;
+            if (isJumpOperation(operation)) {
+                if (operation == JUMP_IF_TRUE && arg1 != 0) index = arg2 - 1;
+                if (operation == JUMP_IF_FALSE && arg1 == 0) index = arg2 - 1;
+            } else {
+                int result = 0;
+                if (operation == ADD) result = arg1 + arg2;
+                if (operation == MULTIPLY) result = arg1 * arg2;
+                if (operation == LESS) result = arg1 < arg2 ? 1 : 0;
+                if (operation == EQUALS) result = arg1 == arg2 ? 1 : 0;
+                if (mode[2] == POSITION_MODE) program[program[++index]] = result;
+                else program[++index] = result;
+            }
         }
         return index;
+    }
+
+    private boolean isJumpOperation(int code) {
+        return code == JUMP_IF_FALSE || code == JUMP_IF_TRUE;
     }
 }
