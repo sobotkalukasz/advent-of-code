@@ -41,32 +41,32 @@ public class SunnyAsteroids {
     }
 
     private int executeOperation(int index) {
+        return isSimpleOperation(index) ? executeSimple(index) : executeComplex(index);
+    }
+
+    private boolean isSimpleOperation(int index) {
+        return String.valueOf(program[index]).length() == 1;
+    }
+
+    private int executeSimple(int index) {
         int operation = program[index];
-        if (operation == INPUT) program[program[++index]] = input.removeFirst();
-        else if (operation == OUTPUT) output.add(program[program[++index]]);
-        else if (isSimplyCode(operation)) {
-            int arg1 = program[program[++index]];
-            int arg2 = program[program[++index]];
+        if (operation == INPUT) setValueByIndex(++index, input.removeFirst());
+        else if (operation == OUTPUT) output.add(getValueByIndex(++index));
+        else {
+            int arg1 = getValueByIndex(++index);
+            int arg2 = getValueByIndex(++index);
             if (isJumpOperation(operation)) {
                 if (operation == JUMP_IF_TRUE && arg1 != 0) index = arg2 - 1;
                 if (operation == JUMP_IF_FALSE && arg1 == 0) index = arg2 - 1;
-             } else{
-                int result = 0;
-                if (operation == ADD) result = arg1 + arg2;
-                if (operation == MULTIPLY) result = arg1 * arg2;
-                if (operation == LESS) result = arg1 < arg2 ? 1 : 0;
-                if (operation == EQUALS) result = arg1 == arg2 ? 1 : 0;
-                program[program[++index]] = result;
+            } else {
+                int result = getResult(operation, arg1, arg2);
+                setValueByIndex(++index, result);
             }
-        } else index = executeComplexOperation(index);
+        }
         return index;
     }
 
-    private boolean isSimplyCode(int code) {
-        return code == ADD || code == MULTIPLY || code == JUMP_IF_TRUE || code == JUMP_IF_FALSE || code == LESS || code == EQUALS;
-    }
-
-    private int executeComplexOperation(int index) {
+    private int executeComplex(int index) {
         String op = String.valueOf(program[index]);
         int operation = Integer.parseInt(op.substring(op.length() - 2));
         int[] mode = new int[]{0, 0, 0};
@@ -75,27 +75,51 @@ public class SunnyAsteroids {
             mode[j] = Integer.parseInt(String.valueOf(op.charAt(i)));
         }
         if (operation == OUTPUT) {
-            output.add(mode[0] == POSITION_MODE ? program[program[++index]] : program[++index]);
+            output.add(getValueByIndex(++index, mode[0]));
         } else {
-            int arg1 = mode[0] == POSITION_MODE ? program[program[++index]] : program[++index];
-            int arg2 = mode[1] == POSITION_MODE ? program[program[++index]] : program[++index];
+            int arg1 = getValueByIndex(++index, mode[0]);
+            int arg2 = getValueByIndex(++index, mode[1]);
             if (isJumpOperation(operation)) {
                 if (operation == JUMP_IF_TRUE && arg1 != 0) index = arg2 - 1;
                 if (operation == JUMP_IF_FALSE && arg1 == 0) index = arg2 - 1;
             } else {
-                int result = 0;
-                if (operation == ADD) result = arg1 + arg2;
-                if (operation == MULTIPLY) result = arg1 * arg2;
-                if (operation == LESS) result = arg1 < arg2 ? 1 : 0;
-                if (operation == EQUALS) result = arg1 == arg2 ? 1 : 0;
-                if (mode[2] == POSITION_MODE) program[program[++index]] = result;
-                else program[++index] = result;
+                int result = getResult(operation, arg1, arg2);
+                setValueByIndex(++index, result, mode[2]);
             }
         }
         return index;
     }
 
+    private int getValueByIndex(int index) {
+        return getValueByIndex(index, POSITION_MODE);
+    }
+
+    private int getValueByIndex(int index, int mode) {
+        if (mode == POSITION_MODE)
+            return program[program[index]];
+        return program[index];
+    }
+
+    private void setValueByIndex(int index, int value) {
+        setValueByIndex(index, value, POSITION_MODE);
+    }
+
+    private void setValueByIndex(int index, int value, int mode) {
+        if (mode == POSITION_MODE)
+            program[program[index]] = value;
+        else program[index] = value;
+    }
+
     private boolean isJumpOperation(int code) {
         return code == JUMP_IF_FALSE || code == JUMP_IF_TRUE;
+    }
+
+    private int getResult(int operation, int arg1, int arg2) {
+        int result = 0;
+        if (operation == ADD) result = arg1 + arg2;
+        if (operation == MULTIPLY) result = arg1 * arg2;
+        if (operation == LESS) result = arg1 < arg2 ? 1 : 0;
+        if (operation == EQUALS) result = arg1 == arg2 ? 1 : 0;
+        return result;
     }
 }
