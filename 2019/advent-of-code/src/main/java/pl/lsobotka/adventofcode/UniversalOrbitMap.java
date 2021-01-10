@@ -2,6 +2,9 @@ package pl.lsobotka.adventofcode;
 
 import java.util.*;
 
+/*
+ * https://adventofcode.com/2019/day/6
+ * */
 public class UniversalOrbitMap {
 
     private Set<Orbit> orbits;
