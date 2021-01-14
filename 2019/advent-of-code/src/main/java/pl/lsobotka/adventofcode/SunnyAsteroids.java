@@ -38,8 +38,26 @@ public class SunnyAsteroids {
         index = new AtomicInteger(-1);
     }
 
+    public void addInput(int... input){
+        for (int i : input) {
+            this.input.addLast(i);
+        }
+    }
+
+    public boolean isHalted(){
+        return program[index.get()] == STOP || program[index.get()+1] == STOP;
+    }
+
     public List<Integer> execute() {
         while (program[index.incrementAndGet()] != STOP) {
+            executeOperation();
+        }
+        return output;
+    }
+
+    public List<Integer> executeUntilOutput() {
+        output.clear();
+        while (output.isEmpty() && program[index.incrementAndGet()] != STOP) {
             executeOperation();
         }
         return output;

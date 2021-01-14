@@ -2,7 +2,7 @@ package pl.lsobotka.adventofcode;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /*
  * https://adventofcode.com/2019/day/7
@@ -10,15 +10,13 @@ import java.util.stream.IntStream;
 public class AmplificationCircuit {
 
     int[] program;
-    int[] inputRange;
 
-    AmplificationCircuit(int[] program, int rangeClosed) {
+    AmplificationCircuit(int[] program) {
         this.program = program;
-        this.inputRange = IntStream.rangeClosed(0, rangeClosed).toArray();
     }
 
-    public int calculateMaxSignal() {
-        List<Deque<Integer>> permutations = getPermutations(inputRange, inputRange.length);
+    public int calculateMaxSignal(int[] inputRange) {
+        List<Deque<Integer>> permutations = getPermutations(inputRange);
         return permutations.stream().map(this::calculateSignalForRange).max(Integer::compareTo).orElse(0);
     }
 
@@ -33,17 +31,43 @@ public class AmplificationCircuit {
         return output;
     }
 
-    private List<Deque<Integer>> getPermutations(int[] elements, int size) {
-        int[] tempArray = new int[size];
-        System.arraycopy(elements, 0, tempArray, 0, size);
+    public int calculateMaxSignalLoop(int[] inputRange) {
+        List<Deque<Integer>> permutations = getPermutations(inputRange);
+        return permutations.stream().map(this::calculateSignalForRangeLoop).max(Integer::compareTo).orElse(0);
+    }
+
+    private int calculateSignalForRangeLoop(Deque<Integer> input) {
+        int intCodeSize = input.size();
+        int output = 0;
+        SunnyAsteroids[] intCode = new SunnyAsteroids[intCodeSize];
+
+        while (!isAnyHalted(intCode)) {
+            for (int i = 0; i < intCodeSize; i++) {
+                if (Objects.isNull(intCode[i]))
+                    intCode[i] = new SunnyAsteroids(getCopy(program), input.removeFirst(), output);
+                else
+                    intCode[i].addInput(output);
+                List<Integer> execute = intCode[i].executeUntilOutput();
+                output = Math.max(output, execute.stream().max(Integer::compareTo).orElse(0));
+            }
+        }
+        return output;
+    }
+
+    private boolean isAnyHalted(SunnyAsteroids[] intCode) {
+        return Stream.of(intCode).anyMatch(p -> Objects.nonNull(p) && p.isHalted());
+    }
+
+    private List<Deque<Integer>> getPermutations(int[] elements) {
+        int[] tempArray = getCopy(elements);
         List<Deque<Integer>> permutations = new ArrayList<>();
 
-        int[] indexes = new int[size];
+        int[] indexes = new int[tempArray.length];
         Arrays.fill(indexes, 0);
         permutations.add(toLinkedList(tempArray));
 
         int i = 0;
-        while (i < size) {
+        while (i < tempArray.length) {
             if (indexes[i] < i) {
                 swap(tempArray, i % 2 == 0 ? 0 : indexes[i], i);
                 permutations.add(toLinkedList(tempArray));
@@ -66,6 +90,12 @@ public class AmplificationCircuit {
 
     private Deque<Integer> toLinkedList(int[] elements) {
         return Arrays.stream(elements).boxed().collect(Collectors.toCollection(LinkedList::new));
+    }
+
+    private int[] getCopy(int[] arr) {
+        int[] tempArray = new int[arr.length];
+        System.arraycopy(arr, 0, tempArray, 0, arr.length);
+        return tempArray;
     }
 
 }
