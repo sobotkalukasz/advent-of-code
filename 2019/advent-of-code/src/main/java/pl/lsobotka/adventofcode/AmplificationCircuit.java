@@ -39,23 +39,23 @@ public class AmplificationCircuit {
     private int calculateSignalForRangeLoop(Deque<Integer> input) {
         int intCodeSize = input.size();
         int output = 0;
-        SunnyAsteroids[] intCode = new SunnyAsteroids[intCodeSize];
+        IntCode[] intCodes = new IntCode[intCodeSize];
 
-        while (!isAnyHalted(intCode)) {
+        while (!isAnyHalted(intCodes)) {
             for (int i = 0; i < intCodeSize; i++) {
-                if (Objects.isNull(intCode[i]))
-                    intCode[i] = new SunnyAsteroids(getCopy(program), input.removeFirst(), output);
+                if (Objects.isNull(intCodes[i]))
+                    intCodes[i] = new IntCode(getCopy(program), input.removeFirst(), output);
                 else
-                    intCode[i].addInput(output);
-                List<Integer> execute = intCode[i].executeUntilOutput();
+                    intCodes[i].addInput(output);
+                List<Integer> execute = intCodes[i].executeUntilOutput();
                 output = Math.max(output, execute.stream().max(Integer::compareTo).orElse(0));
             }
         }
         return output;
     }
 
-    private boolean isAnyHalted(SunnyAsteroids[] intCode) {
-        return Stream.of(intCode).anyMatch(p -> Objects.nonNull(p) && p.isHalted());
+    private boolean isAnyHalted(IntCode[] intCodes) {
+        return Stream.of(intCodes).anyMatch(p -> Objects.nonNull(p) && p.isHalted());
     }
 
     private List<Deque<Integer>> getPermutations(int[] elements) {
