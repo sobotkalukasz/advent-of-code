@@ -9,16 +9,16 @@ public class IntCode {
 
     private static final int STOP = 99;
 
+    Memory memory;
     Deque<Long> input;
     List<Long> output;
-    long[] program;
     AtomicInteger index;
     long relativeBase;
 
     public IntCode(long[] instructions, Long... input) {
-        program = instructions;
+        memory = new Memory(instructions);
         this.input = Stream.of(input).collect(Collectors.toCollection(LinkedList::new));
-        this.output = new ArrayList<>();
+        output = new ArrayList<>();
         index = new AtomicInteger(-1);
         relativeBase = 0;
     }
@@ -30,11 +30,11 @@ public class IntCode {
     }
 
     public boolean isHalted() {
-        return program[index.get()] == STOP || program[index.get() + 1] == STOP;
+        return memory.getValue(index.get()) == STOP || memory.getValue(index.get() + 1) == STOP;
     }
 
     public List<Long> execute() {
-        while (program[index.incrementAndGet()] != STOP) {
+        while (memory.getValue(index.incrementAndGet()) != STOP) {
             executeOperation();
         }
         return output;
@@ -42,7 +42,7 @@ public class IntCode {
 
     public List<Long> executeUntilOutput() {
         output.clear();
-        while (output.isEmpty() && program[index.incrementAndGet()] != STOP) {
+        while (output.isEmpty() && memory.getValue(index.incrementAndGet()) != STOP) {
             executeOperation();
         }
         return output;
@@ -70,15 +70,15 @@ public class IntCode {
 
     private Operation getCurrentOpCode() {
         if (isSimpleOperation(index.get()))
-            return Operation.getByValue((int) program[index.get()]);
-        String op = String.valueOf(program[index.get()]);
+            return Operation.getByValue((int) memory.getValue(index.get()));
+        String op = String.valueOf(memory.getValue(index.get()));
         return Operation.getByValue(Integer.parseInt(op.substring(op.length() - 2)));
     }
 
     private Mode[] getParamMode() {
         Mode[] mode = new Mode[]{Mode.POSITION, Mode.POSITION, Mode.POSITION};
         if (!isSimpleOperation(index.get())) {
-            String op = String.valueOf(program[index.get()]);
+            String op = String.valueOf(memory.getValue(index.get()));
             for (int i = op.length() - 3, j = 0; i >= 0; i--, j++) {
                 mode[j] = Mode.getByValue(op.charAt(i));
             }
@@ -87,41 +87,23 @@ public class IntCode {
     }
 
     private boolean isSimpleOperation(int index) {
-        return String.valueOf(program[index]).length() == 1;
+        return String.valueOf(memory.getValue(index)).length() == 1;
     }
 
     private long getValueAtPosition(int index, Mode mode) {
         return switch (mode) {
-            //case POSITION -> program[(int) program[index]];
-            //case IMMEDIATE -> program[index];
-            //case RELATIVE -> program[(int) Math.addExact(relativeBase, program[index])];
-
-            case POSITION -> getValueAtPositionSafe((int) program[index]);
-            case IMMEDIATE -> getValueAtPositionSafe(index);
-            case RELATIVE -> getValueAtPositionSafe((int) Math.addExact(relativeBase, program[index]));
+            case POSITION -> memory.getValue((int) memory.getValue(index));
+            case IMMEDIATE -> memory.getValue(index);
+            case RELATIVE -> memory.getValue((int) Math.addExact(relativeBase, memory.getValue(index)));
         };
-    }
-
-    private long getValueAtPositionSafe(int index) {
-        if (program.length <= index+1) extendMemory(index+1);
-        return program[index];
     }
 
     private void setValueAtPosition(int index, long value, Mode mode) {
         switch (mode) {
-            //case POSITION -> program[(int) program[index]] = value;
-            //case IMMEDIATE -> program[index] = value;
-            //case RELATIVE -> program[index] += value;
-
-            case POSITION -> setValueAtPositionSafe((int) program[index], value);
-            case IMMEDIATE -> setValueAtPositionSafe(index, value);
-            case RELATIVE -> setValueAtPositionSafe((int) Math.addExact(relativeBase, program[index]), value);
+            case POSITION -> memory.setValue((int) memory.getValue(index), value);
+            case IMMEDIATE -> memory.setValue(index, value);
+            case RELATIVE -> memory.setValue((int) Math.addExact(relativeBase, memory.getValue(index)), value);
         }
-    }
-
-    private void setValueAtPositionSafe(int index, long value) {
-        if (program.length <= index+1) extendMemory(index+1);
-        program[index] = value;
     }
 
     private boolean isJumpOperation(Operation code) {
@@ -135,13 +117,6 @@ public class IntCode {
         if (op == Operation.LESS) result = arg1 < arg2 ? 1 : 0;
         if (op == Operation.EQUALS) result = arg1 == arg2 ? 1 : 0;
         return result;
-    }
-
-    private void extendMemory(int targetIndexSize) {
-        long[] temp = new long[targetIndexSize];
-        Arrays.fill(temp, 0L);
-        System.arraycopy(program, 0, temp, 0, program.length);
-        program = temp;
     }
 
     private enum Mode {
@@ -186,5 +161,31 @@ public class IntCode {
         public static Operation getByValue(int toFind) {
             return Stream.of(Operation.values()).filter(m -> m.value == toFind).findFirst().orElseThrow(() -> new EnumConstantNotPresentException(Mode.class, String.valueOf(toFind)));
         }
+    }
+
+    private static class Memory {
+        private long[] program;
+
+        Memory(long[] instructions) {
+            program = instructions;
+        }
+
+        protected long getValue(int index) {
+            if (program.length <= index + 1) extendMemory(index + 1);
+            return program[index];
+        }
+
+        protected void setValue(int index, long value) {
+            if (program.length <= index + 1) extendMemory(index + 1);
+            program[index] = value;
+        }
+
+        private void extendMemory(int targetIndexSize) {
+            long[] temp = new long[targetIndexSize];
+            Arrays.fill(temp, 0L);
+            System.arraycopy(program, 0, temp, 0, program.length);
+            program = temp;
+        }
+
     }
 }
