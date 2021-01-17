@@ -45,7 +45,8 @@ public class SensorBoostTest extends BaseTest {
 
     private static Stream<Arguments> sensorBoostFile() {
         return Stream.of(
-                Arguments.of("SensorBoost", 1L, 2518058886L)
+                Arguments.of("SensorBoost", 1L, 2518058886L),
+                Arguments.of("SensorBoost", 2L, 44292L)
         );
     }
 
