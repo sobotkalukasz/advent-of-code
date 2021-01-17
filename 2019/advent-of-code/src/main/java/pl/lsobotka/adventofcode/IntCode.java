@@ -1,9 +1,6 @@
 package pl.lsobotka.adventofcode;
 
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -16,12 +13,14 @@ public class IntCode {
     List<Long> output;
     long[] program;
     AtomicInteger index;
+    long relativeBase;
 
     public IntCode(long[] instructions, Long... input) {
         program = instructions;
         this.input = Stream.of(input).collect(Collectors.toCollection(LinkedList::new));
         this.output = new ArrayList<>();
         index = new AtomicInteger(-1);
+        relativeBase = 0;
     }
 
     public void addInput(long... input) {
@@ -52,20 +51,19 @@ public class IntCode {
     private void executeOperation() {
         Operation opCode = getCurrentOpCode();
         Mode[] mode = getParamMode();
-        if (opCode == Operation.INPUT) setValueByIndex(index.incrementAndGet(), input.removeFirst(), mode[0]);
-        else if (opCode == Operation.OUTPUT) output.add(getValueByIndex(index.incrementAndGet(), mode[0]));
-        else if (opCode == Operation.RELATIVE_BASE) {
-            long value = getValueByIndex(index.incrementAndGet(), mode[0]);
-            setValueByIndex(0, value + value, mode[1]);
-        } else {
-            long arg1 = getValueByIndex(index.incrementAndGet(), mode[0]);
-            long arg2 = getValueByIndex(index.incrementAndGet(), mode[1]);
+        if (opCode == Operation.INPUT) setValueAtPosition(index.incrementAndGet(), input.removeFirst(), mode[0]);
+        else if (opCode == Operation.OUTPUT) output.add(getValueAtPosition(index.incrementAndGet(), mode[0]));
+        else if (opCode == Operation.RELATIVE_BASE)
+            relativeBase += getValueAtPosition(index.incrementAndGet(), mode[0]);
+        else {
+            long arg1 = getValueAtPosition(index.incrementAndGet(), mode[0]);
+            long arg2 = getValueAtPosition(index.incrementAndGet(), mode[1]);
             if (isJumpOperation(opCode)) {
                 if (opCode == Operation.JUMP_IF_TRUE && arg1 != 0) index.set((int) arg2 - 1);
                 if (opCode == Operation.JUMP_IF_FALSE && arg1 == 0) index.set((int) arg2 - 1);
             } else {
                 long result = getResult(opCode, arg1, arg2);
-                setValueByIndex(index.incrementAndGet(), result, mode[2]);
+                setValueAtPosition(index.incrementAndGet(), result, mode[2]);
             }
         }
     }
@@ -92,21 +90,38 @@ public class IntCode {
         return String.valueOf(program[index]).length() == 1;
     }
 
-    private long getValueByIndex(int index, Mode mode) {
-
+    private long getValueAtPosition(int index, Mode mode) {
         return switch (mode) {
-            case POSITION -> program[(int) program[index]];
-            case IMMEDIATE -> program[index];
-            case RELATIVE -> program[0] + program[index];
+            //case POSITION -> program[(int) program[index]];
+            //case IMMEDIATE -> program[index];
+            //case RELATIVE -> program[(int) Math.addExact(relativeBase, program[index])];
+
+            case POSITION -> getValueAtPositionSafe((int) program[index]);
+            case IMMEDIATE -> getValueAtPositionSafe(index);
+            case RELATIVE -> getValueAtPositionSafe((int) Math.addExact(relativeBase, program[index]));
         };
     }
 
-    private void setValueByIndex(int index, long value, Mode mode) {
+    private long getValueAtPositionSafe(int index) {
+        if (program.length <= index+1) extendMemory(index+1);
+        return program[index];
+    }
+
+    private void setValueAtPosition(int index, long value, Mode mode) {
         switch (mode) {
-            case POSITION -> program[(int) program[index]] = value;
-            case IMMEDIATE -> program[index] = value;
-            case RELATIVE -> program[index] += value;
+            //case POSITION -> program[(int) program[index]] = value;
+            //case IMMEDIATE -> program[index] = value;
+            //case RELATIVE -> program[index] += value;
+
+            case POSITION -> setValueAtPositionSafe((int) program[index], value);
+            case IMMEDIATE -> setValueAtPositionSafe(index, value);
+            case RELATIVE -> setValueAtPositionSafe((int) Math.addExact(relativeBase, program[index]), value);
         }
+    }
+
+    private void setValueAtPositionSafe(int index, long value) {
+        if (program.length <= index+1) extendMemory(index+1);
+        program[index] = value;
     }
 
     private boolean isJumpOperation(Operation code) {
@@ -120,6 +135,13 @@ public class IntCode {
         if (op == Operation.LESS) result = arg1 < arg2 ? 1 : 0;
         if (op == Operation.EQUALS) result = arg1 == arg2 ? 1 : 0;
         return result;
+    }
+
+    private void extendMemory(int targetIndexSize) {
+        long[] temp = new long[targetIndexSize];
+        Arrays.fill(temp, 0L);
+        System.arraycopy(program, 0, temp, 0, program.length);
+        program = temp;
     }
 
     private enum Mode {
