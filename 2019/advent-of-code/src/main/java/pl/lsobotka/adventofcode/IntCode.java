@@ -20,8 +20,6 @@ public class IntCode {
     private static final int LESS = 7;
     private static final int EQUALS = 8;
 
-    private static final int POSITION_MODE = 0;
-
     Deque<Integer> input;
     List<Integer> output;
     int[] program;
@@ -35,14 +33,14 @@ public class IntCode {
         index = new AtomicInteger(-1);
     }
 
-    public void addInput(int... input){
+    public void addInput(int... input) {
         for (int i : input) {
             this.input.addLast(i);
         }
     }
 
-    public boolean isHalted(){
-        return program[index.get()] == STOP || program[index.get()+1] == STOP;
+    public boolean isHalted() {
+        return program[index.get()] == STOP || program[index.get() + 1] == STOP;
     }
 
     public List<Integer> execute() {
@@ -62,7 +60,7 @@ public class IntCode {
 
     private void executeOperation() {
         int opCode = getCurrentOpCode();
-        int[] mode = getParamMode();
+        Mode[] mode = getParamMode();
         if (opCode == INPUT) setValueByIndex(index.incrementAndGet(), input.removeFirst(), mode[0]);
         else if (opCode == OUTPUT) output.add(getValueByIndex(index.incrementAndGet(), mode[0]));
         else {
@@ -85,12 +83,12 @@ public class IntCode {
         return Integer.parseInt(op.substring(op.length() - 2));
     }
 
-    private int[] getParamMode() {
-        int[] mode = new int[]{POSITION_MODE, POSITION_MODE, POSITION_MODE};
+    private Mode[] getParamMode() {
+        Mode[] mode = new Mode[]{Mode.POSITION, Mode.POSITION, Mode.POSITION};
         if (!isSimpleOperation(index.get())) {
             String op = String.valueOf(program[index.get()]);
             for (int i = op.length() - 3, j = 0; i >= 0; i--, j++) {
-                mode[j] = Integer.parseInt(String.valueOf(op.charAt(i)));
+                mode[j] = Mode.getByValue(op.charAt(i));
             }
         }
         return mode;
@@ -100,16 +98,21 @@ public class IntCode {
         return String.valueOf(program[index]).length() == 1;
     }
 
-    private int getValueByIndex(int index, int mode) {
-        if (mode == POSITION_MODE)
-            return program[program[index]];
-        return program[index];
+    private int getValueByIndex(int index, Mode mode) {
+
+        return switch (mode) {
+            case POSITION -> program[program[index]];
+            case IMMEDIATE -> program[index];
+            case RELATIVE -> 0;//TODO
+        };
     }
 
-    private void setValueByIndex(int index, int value, int mode) {
-        if (mode == POSITION_MODE)
-            program[program[index]] = value;
-        else program[index] = value;
+    private void setValueByIndex(int index, int value, Mode mode) {
+        switch (mode) {
+            case POSITION -> program[program[index]] = value;
+            case IMMEDIATE -> program[index] = value;
+            case RELATIVE -> System.out.println();//TODO
+        }
     }
 
     private boolean isJumpOperation(int code) {
@@ -123,5 +126,26 @@ public class IntCode {
         if (operation == LESS) result = arg1 < arg2 ? 1 : 0;
         if (operation == EQUALS) result = arg1 == arg2 ? 1 : 0;
         return result;
+    }
+
+    private enum Mode {
+
+        POSITION(0),
+        IMMEDIATE(1),
+        RELATIVE(2);
+
+        int value;
+
+        Mode(int value) {
+            this.value = value;
+        }
+
+        public static Mode getByValue(char toFind) {
+            return getByValue(Character.getNumericValue(toFind));
+        }
+
+        public static Mode getByValue(int toFind) {
+            return Stream.of(Mode.values()).filter(m -> m.value == toFind).findFirst().orElseThrow(() -> new EnumConstantNotPresentException(Mode.class, String.valueOf(toFind)));
+        }
     }
 }
