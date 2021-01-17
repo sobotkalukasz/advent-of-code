@@ -9,36 +9,36 @@ import java.util.stream.Stream;
  * */
 public class AmplificationCircuit {
 
-    int[] program;
+    long[] program;
 
-    AmplificationCircuit(int[] program) {
+    AmplificationCircuit(long[] program) {
         this.program = program;
     }
 
-    public int calculateMaxSignal(int[] inputRange) {
-        List<Deque<Integer>> permutations = getPermutations(inputRange);
-        return permutations.stream().map(this::calculateSignalForRange).max(Integer::compareTo).orElse(0);
+    public long calculateMaxSignal(long[] inputRange) {
+        List<Deque<Long>> permutations = getPermutations(inputRange);
+        return permutations.stream().map(this::calculateSignalForRange).max(Long::compareTo).orElse(0L);
     }
 
-    private int calculateSignalForRange(Deque<Integer> input) {
-        int output = 0;
+    private long calculateSignalForRange(Deque<Long> input) {
+        long output = 0;
         SunnyAsteroids intCode;
 
         while (!input.isEmpty()) {
             intCode = new SunnyAsteroids(program, input.removeFirst(), output);
-            output = intCode.execute().stream().max(Integer::compareTo).orElse(0);
+            output = intCode.execute().stream().max(Long::compareTo).orElse(0L);
         }
         return output;
     }
 
-    public int calculateMaxSignalLoop(int[] inputRange) {
-        List<Deque<Integer>> permutations = getPermutations(inputRange);
-        return permutations.stream().map(this::calculateSignalForRangeLoop).max(Integer::compareTo).orElse(0);
+    public long calculateMaxSignalLoop(long[] inputRange) {
+        List<Deque<Long>> permutations = getPermutations(inputRange);
+        return permutations.stream().map(this::calculateSignalForRangeLoop).max(Long::compareTo).orElse(0L);
     }
 
-    private int calculateSignalForRangeLoop(Deque<Integer> input) {
+    private long calculateSignalForRangeLoop(Deque<Long> input) {
         int intCodeSize = input.size();
-        int output = 0;
+        long output = 0;
         IntCode[] intCodes = new IntCode[intCodeSize];
 
         while (!isAnyHalted(intCodes)) {
@@ -47,8 +47,8 @@ public class AmplificationCircuit {
                     intCodes[i] = new IntCode(getCopy(program), input.removeFirst(), output);
                 else
                     intCodes[i].addInput(output);
-                List<Integer> execute = intCodes[i].executeUntilOutput();
-                output = Math.max(output, execute.stream().max(Integer::compareTo).orElse(0));
+                List<Long> execute = intCodes[i].executeUntilOutput();
+                output = Math.max(output, execute.stream().max(Long::compareTo).orElse(0L));
             }
         }
         return output;
@@ -58,9 +58,9 @@ public class AmplificationCircuit {
         return Stream.of(intCodes).anyMatch(p -> Objects.nonNull(p) && p.isHalted());
     }
 
-    private List<Deque<Integer>> getPermutations(int[] elements) {
-        int[] tempArray = getCopy(elements);
-        List<Deque<Integer>> permutations = new ArrayList<>();
+    private List<Deque<Long>> getPermutations(long[] elements) {
+        long[] tempArray = getCopy(elements);
+        List<Deque<Long>> permutations = new ArrayList<>();
 
         int[] indexes = new int[tempArray.length];
         Arrays.fill(indexes, 0);
@@ -82,18 +82,18 @@ public class AmplificationCircuit {
         return permutations;
     }
 
-    private void swap(int[] input, int a, int b) {
-        int tmp = input[a];
+    private void swap(long[] input, int a, int b) {
+        long tmp = input[a];
         input[a] = input[b];
         input[b] = tmp;
     }
 
-    private Deque<Integer> toLinkedList(int[] elements) {
+    private Deque<Long> toLinkedList(long[] elements) {
         return Arrays.stream(elements).boxed().collect(Collectors.toCollection(LinkedList::new));
     }
 
-    private int[] getCopy(int[] arr) {
-        int[] tempArray = new int[arr.length];
+    private long[] getCopy(long[] arr) {
+        long[] tempArray = new long[arr.length];
         System.arraycopy(arr, 0, tempArray, 0, arr.length);
         return tempArray;
     }

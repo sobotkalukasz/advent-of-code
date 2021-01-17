@@ -7,13 +7,13 @@ import java.util.List;
  * */
 public class SunnyAsteroids {
 
-    private IntCode intCode;
+    private final IntCode intCode;
 
-    public SunnyAsteroids(int[] instructions, Integer... input) {
+    public SunnyAsteroids(long[] instructions, Long... input) {
         intCode = new IntCode(instructions, input);
     }
 
-    public List<Integer> execute(){
+    public List<Long> execute(){
         return intCode.execute();
     }
 }
