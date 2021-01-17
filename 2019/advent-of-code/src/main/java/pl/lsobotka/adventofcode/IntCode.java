@@ -11,21 +11,11 @@ import java.util.stream.Stream;
 public class IntCode {
 
     private static final int STOP = 99;
-    private static final int ADD = 1;
-    private static final int MULTIPLY = 2;
-    private static final int INPUT = 3;
-    private static final int OUTPUT = 4;
-    private static final int JUMP_IF_TRUE = 5;
-    private static final int JUMP_IF_FALSE = 6;
-    private static final int LESS = 7;
-    private static final int EQUALS = 8;
-    private static final int RELATIVE_BASE = 9;
 
     Deque<Long> input;
     List<Long> output;
     long[] program;
     AtomicInteger index;
-
 
     public IntCode(long[] instructions, Long... input) {
         program = instructions;
@@ -60,19 +50,19 @@ public class IntCode {
     }
 
     private void executeOperation() {
-        int opCode = getCurrentOpCode();
+        Operation opCode = getCurrentOpCode();
         Mode[] mode = getParamMode();
-        if (opCode == INPUT) setValueByIndex(index.incrementAndGet(), input.removeFirst(), mode[0]);
-        else if (opCode == OUTPUT) output.add(getValueByIndex(index.incrementAndGet(), mode[0]));
-        else if (opCode == RELATIVE_BASE) {
+        if (opCode == Operation.INPUT) setValueByIndex(index.incrementAndGet(), input.removeFirst(), mode[0]);
+        else if (opCode == Operation.OUTPUT) output.add(getValueByIndex(index.incrementAndGet(), mode[0]));
+        else if (opCode == Operation.RELATIVE_BASE) {
             long value = getValueByIndex(index.incrementAndGet(), mode[0]);
             setValueByIndex(0, value + value, mode[1]);
         } else {
             long arg1 = getValueByIndex(index.incrementAndGet(), mode[0]);
             long arg2 = getValueByIndex(index.incrementAndGet(), mode[1]);
             if (isJumpOperation(opCode)) {
-                if (opCode == JUMP_IF_TRUE && arg1 != 0) index.set((int) arg2 - 1);
-                if (opCode == JUMP_IF_FALSE && arg1 == 0) index.set((int) arg2 - 1);
+                if (opCode == Operation.JUMP_IF_TRUE && arg1 != 0) index.set((int) arg2 - 1);
+                if (opCode == Operation.JUMP_IF_FALSE && arg1 == 0) index.set((int) arg2 - 1);
             } else {
                 long result = getResult(opCode, arg1, arg2);
                 setValueByIndex(index.incrementAndGet(), result, mode[2]);
@@ -80,11 +70,11 @@ public class IntCode {
         }
     }
 
-    private int getCurrentOpCode() {
+    private Operation getCurrentOpCode() {
         if (isSimpleOperation(index.get()))
-            return (int) program[index.get()];
+            return Operation.getByValue((int) program[index.get()]);
         String op = String.valueOf(program[index.get()]);
-        return Integer.parseInt(op.substring(op.length() - 2));
+        return Operation.getByValue(Integer.parseInt(op.substring(op.length() - 2)));
     }
 
     private Mode[] getParamMode() {
@@ -119,16 +109,16 @@ public class IntCode {
         }
     }
 
-    private boolean isJumpOperation(int code) {
-        return code == JUMP_IF_FALSE || code == JUMP_IF_TRUE;
+    private boolean isJumpOperation(Operation code) {
+        return code == Operation.JUMP_IF_FALSE || code == Operation.JUMP_IF_TRUE;
     }
 
-    private long getResult(int operation, long arg1, long arg2) {
+    private long getResult(Operation op, long arg1, long arg2) {
         long result = 0;
-        if (operation == ADD) result = arg1 + arg2;
-        if (operation == MULTIPLY) result = arg1 * arg2;
-        if (operation == LESS) result = arg1 < arg2 ? 1 : 0;
-        if (operation == EQUALS) result = arg1 == arg2 ? 1 : 0;
+        if (op == Operation.ADD) result = arg1 + arg2;
+        if (op == Operation.MULTIPLY) result = arg1 * arg2;
+        if (op == Operation.LESS) result = arg1 < arg2 ? 1 : 0;
+        if (op == Operation.EQUALS) result = arg1 == arg2 ? 1 : 0;
         return result;
     }
 
@@ -150,6 +140,29 @@ public class IntCode {
 
         public static Mode getByValue(int toFind) {
             return Stream.of(Mode.values()).filter(m -> m.value == toFind).findFirst().orElseThrow(() -> new EnumConstantNotPresentException(Mode.class, String.valueOf(toFind)));
+        }
+    }
+
+    private enum Operation {
+
+        ADD(1),
+        MULTIPLY(2),
+        INPUT(3),
+        OUTPUT(4),
+        JUMP_IF_TRUE(5),
+        JUMP_IF_FALSE(6),
+        LESS(7),
+        EQUALS(8),
+        RELATIVE_BASE(9);
+
+        int value;
+
+        Operation(int value) {
+            this.value = value;
+        }
+
+        public static Operation getByValue(int toFind) {
+            return Stream.of(Operation.values()).filter(m -> m.value == toFind).findFirst().orElseThrow(() -> new EnumConstantNotPresentException(Mode.class, String.valueOf(toFind)));
         }
     }
 }
