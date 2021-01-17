@@ -7,11 +7,10 @@ import java.util.stream.Stream;
 
 public class IntCode {
 
-    private static final int STOP = 99;
-
-    Memory memory;
     Deque<Long> input;
     List<Long> output;
+
+    Memory memory;
     AtomicInteger index;
     long relativeBase;
 
@@ -30,11 +29,11 @@ public class IntCode {
     }
 
     public boolean isHalted() {
-        return memory.getValue(index.get()) == STOP || memory.getValue(index.get() + 1) == STOP;
+        return memory.isHalted(index.get());
     }
 
     public List<Long> execute() {
-        while (memory.getValue(index.incrementAndGet()) != STOP) {
+        while (canExecute()) {
             executeOperation();
         }
         return output;
@@ -42,10 +41,14 @@ public class IntCode {
 
     public List<Long> executeUntilOutput() {
         output.clear();
-        while (output.isEmpty() && memory.getValue(index.incrementAndGet()) != STOP) {
+        while (output.isEmpty() && canExecute()) {
             executeOperation();
         }
         return output;
+    }
+
+    private boolean canExecute(){
+        return memory.canExecute(index.incrementAndGet());
     }
 
     private void executeOperation() {
@@ -164,6 +167,7 @@ public class IntCode {
     }
 
     private static class Memory {
+        private static final int STOP = 99;
         private long[] program;
 
         Memory(long[] instructions) {
@@ -171,18 +175,25 @@ public class IntCode {
         }
 
         protected long getValue(int index) {
-            if (program.length <= index + 1) extendMemory(index + 1);
+            if (program.length <= index) extendMemory(index + 1);
             return program[index];
         }
 
         protected void setValue(int index, long value) {
-            if (program.length <= index + 1) extendMemory(index + 1);
+            if (program.length <= index) extendMemory(index + 1);
             program[index] = value;
+        }
+
+        protected boolean canExecute(int index) {
+            return !isHalted(index);
+        }
+
+        protected boolean isHalted(int index) {
+            return getValue(index) == STOP || getValue(index) + 1 == STOP;
         }
 
         private void extendMemory(int targetIndexSize) {
             long[] temp = new long[targetIndexSize];
-            Arrays.fill(temp, 0L);
             System.arraycopy(program, 0, temp, 0, program.length);
             program = temp;
         }
