@@ -5,8 +5,8 @@ import java.util.function.BiConsumer;
 
 public class Dive {
 
-    public int determinePositionAndMultiplyCoords(final List<String> instructions) {
-        final Position position = new Position();
+    public int determinePositionAndMultiplyCoords(final List<String> instructions, final boolean withAim) {
+        final Position position = new Position(withAim);
         instructions.stream().map(Step::new).forEach(step -> step.updatePosition(position));
         return position.getDepth() * position.getHorizontal();
     }
@@ -14,21 +14,34 @@ public class Dive {
     private static class Position {
         private int horizontal;
         private int depth;
+        private int aim;
+        private final boolean withAim;
+
+        public Position(boolean withAim) {
+            this.withAim = withAim;
+        }
 
         public void increaseHorizontal(final int value) {
             this.horizontal += value;
-        }
-
-        public void decreaseHorizontal(final int value) {
-            this.horizontal -= value;
+            if (withAim) {
+                this.depth += aim * value;
+            }
         }
 
         public void increaseDepth(final int value) {
-            this.depth += value;
+            if (withAim) {
+                this.aim += value;
+            } else {
+                this.depth += value;
+            }
         }
 
         public void decreaseDepth(final int value) {
-            this.depth -= value;
+            if (withAim) {
+                this.aim -= value;
+            } else {
+                this.depth -= value;
+            }
         }
 
         public int getHorizontal() {

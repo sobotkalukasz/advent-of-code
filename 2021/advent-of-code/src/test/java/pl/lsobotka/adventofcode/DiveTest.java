@@ -11,19 +11,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class DiveTest extends BaseTest {
 
-    private static Stream<Arguments> starOneFile() {
-        return Stream.of(
-                Arguments.of("Dive", 2039912)
-        );
+    private static Stream<Arguments> testResourceFile() {
+        return Stream.of(Arguments.of("Dive", false, 2039912), Arguments.of("Dive", true, 1942068080));
     }
 
     @ParameterizedTest
-    @MethodSource("starOneFile")
-    public void starOneFileTest(final String fileName, final int expected) throws Exception {
+    @MethodSource("testResourceFile")
+    public void starOneFileTest(final String fileName, final boolean withAim, final int expected) throws Exception {
         final List<String> instructions = getFileInput(fileName);
 
         final Dive dive = new Dive();
-        final int actual = dive.determinePositionAndMultiplyCoords(instructions);
+        final int actual = dive.determinePositionAndMultiplyCoords(instructions, withAim);
         assertEquals(expected, actual);
     }
 }
