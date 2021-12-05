@@ -3,6 +3,9 @@ package pl.lsobotka.adventofcode;
 import java.util.List;
 import java.util.function.BiConsumer;
 
+/*
+ * https://adventofcode.com/2021/day/2
+ * */
 public class Dive {
 
     public int determinePositionAndMultiplyCoords(final List<String> instructions, final boolean withAim) {
