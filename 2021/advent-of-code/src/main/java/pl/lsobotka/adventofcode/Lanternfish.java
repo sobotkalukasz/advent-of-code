@@ -3,6 +3,9 @@ package pl.lsobotka.adventofcode;
 import java.util.Arrays;
 import java.util.List;
 
+/*
+ * https://adventofcode.com/2021/day/6
+ * */
 public class Lanternfish {
 
     private static final int NEWBORN = 8;
