@@ -35,11 +35,7 @@ public class LanternfishTest extends BaseTest {
     @ParameterizedTest
     @MethodSource("testResourceFile")
     public void resourceFileTest(final String fileName, final int days, final long expected) throws Exception {
-        final List<Integer> fishAge = getFileInput(fileName).stream()
-                .reduce(String::concat)
-                .map(input -> input.split(","))
-                .map(arr -> Arrays.stream(arr).map(Integer::valueOf).collect(Collectors.toList()))
-                .orElse(Collections.emptyList());
+        final List<Integer> fishAge = getFileInputAsIntegerList(fileName);
 
         final Lanternfish lanternfish = new Lanternfish(fishAge);
         final long actual = lanternfish.countFishAfterDays(days);
