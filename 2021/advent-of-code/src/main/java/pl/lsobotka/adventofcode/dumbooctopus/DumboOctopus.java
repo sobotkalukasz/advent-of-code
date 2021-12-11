@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import pl.lsobotka.adventofcode.Coordinate;
+
 /*
  * https://adventofcode.com/2021/day/11
  * */

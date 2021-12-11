@@ -3,6 +3,8 @@ package pl.lsobotka.adventofcode.dumbooctopus;
 import java.util.ArrayList;
 import java.util.List;
 
+import pl.lsobotka.adventofcode.Coordinate;
+
 class Octopus {
 
     private final Coordinate coordinate;
@@ -25,7 +27,7 @@ class Octopus {
         if (!flash && value > 9) {
             value = 0;
             flash = true;
-            adjacent.addAll(coordinate.getAdjacentWithDiagonalCoordinates(maxRow, maxColumn));
+            adjacent.addAll(coordinate.getAdjacentWithDiagonal(maxRow, maxColumn));
         }
         return adjacent;
     }
