@@ -9,12 +9,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 public class Snailfish {
 
     protected static Fish add(final List<String> rawInput) {
         final List<Fish> fishes = rawInput.stream().map(Fish::init).collect(Collectors.toList());
-        return fishes.stream().reduce((a, b) -> a.add(b)).orElseThrow(IllegalArgumentException::new);
+        return fishes.stream().reduce(Fish::add).orElseThrow(IllegalArgumentException::new);
     }
 
     @Builder
@@ -22,11 +23,26 @@ public class Snailfish {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Fish {
-        private Integer x;
-        private Fish fishX;
-        private Integer y;
-        private Fish fishY;
-        private boolean isExploded;
+        private Integer left;
+        private Fish fishLeft;
+        private Integer right;
+        private Fish fishRight;
+
+        public boolean isLeft() {
+            return Objects.nonNull(left);
+        }
+
+        public boolean isFishLeft() {
+            return Objects.nonNull(fishLeft);
+        }
+
+        public boolean isRight() {
+            return Objects.nonNull(right);
+        }
+
+        public boolean isFishRight() {
+            return Objects.nonNull(fishRight);
+        }
 
         public static Fish init(final String rawData) {
             final Fish fish = new Fish();
@@ -44,10 +60,10 @@ public class Snailfish {
             final char first = rawData.charAt(pointer);
             pointer++;
             if (first == '[') {
-                fish.fishX = new Fish();
-                pointer = init(fish.fishX, rawData, pointer);
+                fish.fishLeft = new Fish();
+                pointer = init(fish.fishLeft, rawData, pointer);
             } else if (Character.isDigit(first)) {
-                fish.x = Integer.parseInt(String.valueOf(first));
+                fish.left = Integer.parseInt(String.valueOf(first));
             } else {
                 throw new IllegalArgumentException(String.valueOf(first));
             }
@@ -61,10 +77,10 @@ public class Snailfish {
             final char second = rawData.charAt(pointer);
             pointer++;
             if (second == '[') {
-                fish.fishY = new Fish();
-                pointer = init(fish.fishY, rawData, pointer);
+                fish.fishRight = new Fish();
+                pointer = init(fish.fishRight, rawData, pointer);
             } else if (Character.isDigit(second)) {
-                fish.y = Integer.parseInt(String.valueOf(second));
+                fish.right = Integer.parseInt(String.valueOf(second));
             } else {
                 throw new IllegalArgumentException(String.valueOf(second));
             }
@@ -78,113 +94,97 @@ public class Snailfish {
         }
 
         public Fish add(final Fish other) {
-            final Fish newFish = new FishBuilder().fishX(this).fishY(other).build();
+            final Fish newFish = new FishBuilder().fishLeft(this).fishRight(other).build();
             newFish.validate();
             return newFish;
         }
 
-        private void resetStatus() {
-            this.isExploded = false;
-            if (Objects.nonNull(fishX)) {
-                fishX.resetStatus();
-            }
-            if (Objects.nonNull(fishY)) {
-                fishY.resetStatus();
-            }
-        }
-
         protected void validate() {
-            Fish exploded;
+            Explosion exploded;
             do {
-                exploded = validateExploded(0);
+                exploded = validateExplosion(0);
                 System.out.println(exploded);
-                resetStatus();
             } while (Objects.nonNull(exploded));
         }
 
-        private Fish validateExploded(final int nested) {
-            Fish exploded = null;
-            if (nested < 3) {
-                if (Objects.nonNull(fishX)) {
-                    exploded = fishX.validateExploded(nested + 1);
-                    if (nested == 0 && Objects.nonNull(exploded) && Objects.nonNull(fishY)) {
-                        final Fish reversed = fishY.applyExploded(new FishBuilder().x(exploded.y).build());
-                        exploded = new FishBuilder().x(exploded.x).y(reversed.x).build();
+        private Explosion validateExplosion(final int nested) {
+            Explosion exploded = null;
+            if (nested == 3) {
+                exploded = explode();
+            } else {
+                if (isFishLeft()) {
+                    exploded = fishLeft.validateExplosion(nested + 1);
+                    if (Objects.nonNull(exploded)) {
+                        if (exploded.isRight()) {
+                            if (isRight()) {
+                                right += exploded.value;
+                                exploded.erase();
+                            } else if (isFishRight()) {
+                                exploded = fishRight.applyRightExplosion(exploded);
+                            }
+                        }
                     }
-                    exploded = applyExploded(exploded);
                 }
-                if (Objects.isNull(exploded) && Objects.nonNull(fishY)) {
-                    exploded = fishY.validateExploded(nested + 1);
-/*                    if (nested == 0 && Objects.nonNull(exploded) && Objects.nonNull(fishX)) {
-                        final Fish reversed = fishX.applyExploded(new FishBuilder().y(exploded.x).build());
-                        exploded = new FishBuilder().x(reversed.y).y(exploded.y).build();
-                    }*/
-                    exploded = applyExploded(exploded);
-                }
-
-            } else if (nested == 3) {
-                if (Objects.nonNull(fishX)) {
-                    this.isExploded = true;
-                    this.x = 0;
-                    exploded = new FishBuilder().x(fishX.x).y(fishX.y).build();
-                    this.fishX = null;
-                    exploded = applyExploded(exploded);
-                } else if (Objects.nonNull(fishY)) {
-                    this.isExploded = true;
-                    this.y = 0;
-                    exploded = new FishBuilder().x(fishY.x).y(fishY.y).build();
-                    this.fishY = null;
-                    exploded = applyExploded(exploded);
-                }
-            }
-            return exploded;
-        }
-
-        private Fish applyExplodedX(Fish exploded) {
-            if (Objects.nonNull(exploded)) {
-                if (Objects.nonNull(exploded.x)) {
-                    if (Objects.nonNull(this.x) && !(this.x == 0 && isExploded)) {
-                        this.x += exploded.x;
-                        exploded = new FishBuilder().y(exploded.y).build();
-                    } else if (Objects.nonNull(this.fishX)) {
-                        exploded = fishX.applyExploded(exploded);
+                if (Objects.isNull(exploded) && isFishRight()) {
+                    exploded = fishRight.validateExplosion(nested + 1);
+                    if (Objects.nonNull(exploded)) {
+                        if (exploded.isLeft()) {
+                            if (isLeft()) {
+                                left += exploded.value;
+                                exploded.erase();
+                            } else if (isFishLeft()) {
+                                exploded = fishLeft.applyLeftExplosion(exploded);
+                            }
+                        }
                     }
                 }
             }
             return exploded;
         }
 
-        private Fish applyExplodedY(Fish exploded) {
-            if (Objects.nonNull(exploded)) {
-                if (Objects.nonNull(exploded.y)) {
-                    if (Objects.nonNull(this.y) && !(this.y == 0 && isExploded)) {
-                        this.y += exploded.y;
-                        exploded = new FishBuilder().x(exploded.x).build();
-                    } else if (Objects.nonNull(this.fishY)) {
-                        exploded = fishY.applyExploded(exploded);
-                    }
+        private Explosion explode() {
+            Explosion explosion = null;
+            if (isFishLeft()) {
+                this.left = 0;
+                explosion = Explosion.left(fishLeft.left);
+                if (isRight()) {
+                    right += fishLeft.right;
+                } else {
+                    fishRight.left += fishLeft.right;
+                }
+                this.fishLeft = null;
+            } else if (isFishRight()) {
+                this.right = 0;
+                explosion = Explosion.right(fishRight.right);
+                if (isLeft()) {
+                    left += fishRight.left;
+                } else {
+                    fishLeft.right += fishRight.left;
+                }
+                this.fishRight = null;
+            }
+            return explosion;
+        }
+
+        private Explosion applyRightExplosion(Explosion exploded) {
+            if (Objects.nonNull(exploded) && exploded.shouldApply()) {
+                if (isLeft()) {
+                    this.left += exploded.value;
+                    exploded.erase();
+                } else if (isFishLeft()) {
+                    exploded = fishLeft.applyRightExplosion(exploded);
                 }
             }
             return exploded;
         }
 
-        private Fish applyExploded(Fish exploded) {
-            if (Objects.nonNull(exploded)) {
-                if (Objects.nonNull(exploded.x)) {
-                    if (Objects.nonNull(this.x) && !(this.x == 0 && isExploded)) {
-                        this.x += exploded.x;
-                        exploded = new FishBuilder().y(exploded.y).build();
-                    } else if (Objects.nonNull(this.fishX)) {
-                        exploded = fishX.applyExploded(exploded);
-                    }
-                }
-                if (Objects.nonNull(exploded.y)) {
-                    if (Objects.nonNull(this.y) && !(this.y == 0 && isExploded)) {
-                        this.y += exploded.y;
-                        exploded = new FishBuilder().x(exploded.x).build();
-                    } else if (Objects.nonNull(this.fishY)) {
-                        exploded = fishY.applyExploded(exploded);
-                    }
+        private Explosion applyLeftExplosion(Explosion exploded) {
+            if (Objects.nonNull(exploded) && exploded.shouldApply()) {
+                if (isRight()) {
+                    this.right += exploded.value;
+                    exploded.erase();
+                } else if (isFishRight()) {
+                    exploded = fishRight.applyLeftExplosion(exploded);
                 }
             }
             return exploded;
@@ -193,22 +193,62 @@ public class Snailfish {
         @Override
         public String toString() {
             final StringBuilder sb = new StringBuilder("Fish{");
-            if (Objects.nonNull(x)) {
-                sb.append("x=").append(x);
+            if (Objects.nonNull(left)) {
+                sb.append("x=").append(left);
             }
-            if (Objects.nonNull(fishX)) {
-                sb.append("fishX=").append(fishX);
+            if (Objects.nonNull(fishLeft)) {
+                sb.append("fishX=").append(fishLeft);
             }
-            if (Objects.nonNull(y)) {
-                sb.append(", y=").append(y);
+            if (Objects.nonNull(right)) {
+                sb.append(", y=").append(right);
             }
-            if (Objects.nonNull(fishY)) {
-                sb.append(", fishY=").append(fishY);
+            if (Objects.nonNull(fishRight)) {
+                sb.append(", fishY=").append(fishRight);
             }
             sb.append('}');
             return sb.toString();
         }
 
+    }
+
+    @ToString
+    private static class Explosion {
+
+        Integer value;
+        Type type;
+
+        private Explosion(Integer value, Type type) {
+            this.value = value;
+            this.type = type;
+        }
+
+        public static Explosion left(final int value) {
+            return new Explosion(value, Type.LEFT);
+        }
+
+        public static Explosion right(final int value) {
+            return new Explosion(value, Type.RIGHT);
+        }
+
+        public void erase() {
+            value = null;
+        }
+
+        public boolean shouldApply() {
+            return Objects.nonNull(value);
+        }
+
+        public boolean isLeft() {
+            return type.equals(Type.LEFT);
+        }
+
+        public boolean isRight() {
+            return type.equals(Type.RIGHT);
+        }
+
+        enum Type {
+            LEFT, RIGHT
+        }
     }
 
 }
