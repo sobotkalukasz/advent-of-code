@@ -1,5 +1,7 @@
 package pl.lsobotka.adventofcode;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Objects;
@@ -7,9 +9,7 @@ import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 public class Snailfish {
 
@@ -19,29 +19,28 @@ public class Snailfish {
     }
 
     @Builder
-    @EqualsAndHashCode
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Fish {
         private Integer left;
-        private Fish fishLeft;
+        private Fish leftNode;
         private Integer right;
-        private Fish fishRight;
+        private Fish rightNode;
 
         public boolean isLeft() {
             return Objects.nonNull(left);
         }
 
-        public boolean isFishLeft() {
-            return Objects.nonNull(fishLeft);
+        public boolean isLeftNode() {
+            return Objects.nonNull(leftNode);
         }
 
         public boolean isRight() {
             return Objects.nonNull(right);
         }
 
-        public boolean isFishRight() {
-            return Objects.nonNull(fishRight);
+        public boolean isRightNode() {
+            return Objects.nonNull(rightNode);
         }
 
         public static Fish init(final String rawData) {
@@ -60,8 +59,8 @@ public class Snailfish {
             final char first = rawData.charAt(pointer);
             pointer++;
             if (first == '[') {
-                fish.fishLeft = new Fish();
-                pointer = init(fish.fishLeft, rawData, pointer);
+                fish.leftNode = new Fish();
+                pointer = init(fish.leftNode, rawData, pointer);
             } else if (Character.isDigit(first)) {
                 fish.left = Integer.parseInt(String.valueOf(first));
             } else {
@@ -77,8 +76,8 @@ public class Snailfish {
             final char second = rawData.charAt(pointer);
             pointer++;
             if (second == '[') {
-                fish.fishRight = new Fish();
-                pointer = init(fish.fishRight, rawData, pointer);
+                fish.rightNode = new Fish();
+                pointer = init(fish.rightNode, rawData, pointer);
             } else if (Character.isDigit(second)) {
                 fish.right = Integer.parseInt(String.valueOf(second));
             } else {
@@ -94,7 +93,7 @@ public class Snailfish {
         }
 
         public Fish add(final Fish other) {
-            final Fish newFish = new FishBuilder().fishLeft(this).fishRight(other).build();
+            final Fish newFish = new FishBuilder().leftNode(this).rightNode(other).build();
             newFish.validate();
             return newFish;
         }
@@ -103,37 +102,43 @@ public class Snailfish {
             Explosion exploded;
             do {
                 exploded = validateExplosion(0);
-                System.out.println(exploded);
+
+                SplitResult splitResult;
+                do {
+                    splitResult = validateSplit(0);
+                } while (splitResult.isSplit() && !splitResult.shouldExplode);
+
             } while (Objects.nonNull(exploded));
         }
 
-        private Explosion validateExplosion(final int nested) {
+        private Explosion validateExplosion(final int nestedLevel) {
             Explosion exploded = null;
-            if (nested == 3) {
+            if (nestedLevel >= 3 && !isMoreNestedLevel()) {
+            //if (nestedLevel >= 3) {
                 exploded = explode();
             } else {
-                if (isFishLeft()) {
-                    exploded = fishLeft.validateExplosion(nested + 1);
+                if (isLeftNode()) {
+                    exploded = leftNode.validateExplosion(nestedLevel + 1);
                     if (Objects.nonNull(exploded)) {
                         if (exploded.isRight()) {
                             if (isRight()) {
                                 right += exploded.value;
                                 exploded.erase();
-                            } else if (isFishRight()) {
-                                exploded = fishRight.applyRightExplosion(exploded);
+                            } else if (isRightNode()) {
+                                exploded = rightNode.applyRightExplosion(exploded);
                             }
                         }
                     }
                 }
-                if (Objects.isNull(exploded) && isFishRight()) {
-                    exploded = fishRight.validateExplosion(nested + 1);
+                if (Objects.isNull(exploded) && isRightNode()) {
+                    exploded = rightNode.validateExplosion(nestedLevel + 1);
                     if (Objects.nonNull(exploded)) {
                         if (exploded.isLeft()) {
                             if (isLeft()) {
                                 left += exploded.value;
                                 exploded.erase();
-                            } else if (isFishLeft()) {
-                                exploded = fishLeft.applyLeftExplosion(exploded);
+                            } else if (isLeftNode()) {
+                                exploded = leftNode.applyLeftExplosion(exploded);
                             }
                         }
                     }
@@ -142,26 +147,38 @@ public class Snailfish {
             return exploded;
         }
 
+        private boolean isMoreNestedLevel(){
+            boolean moreLevel = false;
+            if(isLeftNode()){
+               moreLevel = leftNode.isLeftNode() || leftNode.isRightNode();
+            } else if(!moreLevel && isRightNode()){
+                moreLevel = rightNode.isLeftNode() || rightNode.isRightNode();
+            }
+            return moreLevel;
+        }
+
         private Explosion explode() {
             Explosion explosion = null;
-            if (isFishLeft()) {
+            if (isLeftNode()) {
                 this.left = 0;
-                explosion = Explosion.left(fishLeft.left);
+                explosion = Explosion.left(leftNode.left);
                 if (isRight()) {
-                    right += fishLeft.right;
+                    right += leftNode.right;
                 } else {
-                    fishRight.left += fishLeft.right;
+                    if(rightNode.isLeft()){
+                        rightNode.left += leftNode.right;
+                    }
                 }
-                this.fishLeft = null;
-            } else if (isFishRight()) {
+                this.leftNode = null;
+            } else if (isRightNode()) {
                 this.right = 0;
-                explosion = Explosion.right(fishRight.right);
+                explosion = Explosion.right(rightNode.right);
                 if (isLeft()) {
-                    left += fishRight.left;
+                    left += rightNode.left;
                 } else {
-                    fishLeft.right += fishRight.left;
+                    leftNode.right += rightNode.left;
                 }
-                this.fishRight = null;
+                this.rightNode = null;
             }
             return explosion;
         }
@@ -171,8 +188,8 @@ public class Snailfish {
                 if (isLeft()) {
                     this.left += exploded.value;
                     exploded.erase();
-                } else if (isFishLeft()) {
-                    exploded = fishLeft.applyRightExplosion(exploded);
+                } else if (isLeftNode()) {
+                    exploded = leftNode.applyRightExplosion(exploded);
                 }
             }
             return exploded;
@@ -183,35 +200,91 @@ public class Snailfish {
                 if (isRight()) {
                     this.right += exploded.value;
                     exploded.erase();
-                } else if (isFishRight()) {
-                    exploded = fishRight.applyLeftExplosion(exploded);
+                } else if (isRightNode()) {
+                    exploded = rightNode.applyLeftExplosion(exploded);
                 }
             }
             return exploded;
+        }
+
+        private SplitResult validateSplit(final int nestedLevel) {
+
+            SplitResult splitResult = SplitResult.none();
+            if (this.isLeft()) {
+                if (shouldSplit(this.left)) {
+                    final Fish leftFish = applySplit(this.left);
+                    this.leftNode = leftFish;
+                    this.left = null;
+                    splitResult = nestedLevel >= 3 ? SplitResult.shouldExplode() : SplitResult.split();
+                }
+            } else {
+                splitResult = this.leftNode.validateSplit(nestedLevel + 1);
+            }
+
+            if (!splitResult.isShouldExplode() && this.isRight()) {
+                if (shouldSplit(this.right)) {
+                    final Fish rightFish = applySplit(this.right);
+                    this.rightNode = rightFish;
+                    this.right = null;
+                    splitResult = nestedLevel >= 3 ? SplitResult.shouldExplode() : SplitResult.split();
+                }
+            } else if (!splitResult.isShouldExplode()) {
+                splitResult = this.rightNode.validateSplit(nestedLevel + 1);
+            }
+
+            return splitResult;
+        }
+
+        private boolean shouldSplit(final int value) {
+            return value >= 10;
+        }
+
+        private Fish applySplit(final int value) {
+            final BigDecimal toSplit = BigDecimal.valueOf(value);
+            final BigDecimal divisor = BigDecimal.valueOf(2);
+            return new FishBuilder().left(toSplit.divide(divisor, RoundingMode.DOWN).intValue())
+                    .right(toSplit.divide(divisor, RoundingMode.UP).intValue())
+                    .build();
         }
 
         @Override
         public String toString() {
             final StringBuilder sb = new StringBuilder("Fish{");
             if (Objects.nonNull(left)) {
-                sb.append("x=").append(left);
+                sb.append("left=").append(left);
             }
-            if (Objects.nonNull(fishLeft)) {
-                sb.append("fishX=").append(fishLeft);
+            if (Objects.nonNull(leftNode)) {
+                sb.append("leftNode=").append(leftNode);
             }
             if (Objects.nonNull(right)) {
-                sb.append(", y=").append(right);
+                sb.append(", right=").append(right);
             }
-            if (Objects.nonNull(fishRight)) {
-                sb.append(", fishY=").append(fishRight);
+            if (Objects.nonNull(rightNode)) {
+                sb.append(", rightNode=").append(rightNode);
             }
             sb.append('}');
             return sb.toString();
         }
 
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            Fish fish = (Fish) o;
+            return Objects.equals(left, fish.left) && Objects.equals(leftNode, fish.leftNode) && Objects.equals(right,
+                    fish.right) && Objects.equals(rightNode, fish.rightNode);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(left, leftNode, right, rightNode);
+        }
     }
 
-    @ToString
     private static class Explosion {
 
         Integer value;
@@ -239,15 +312,45 @@ public class Snailfish {
         }
 
         public boolean isLeft() {
-            return type.equals(Type.LEFT);
+            return type.equals(Type.LEFT) && shouldApply();
         }
 
         public boolean isRight() {
-            return type.equals(Type.RIGHT);
+            return type.equals(Type.RIGHT)&& shouldApply();
         }
 
         enum Type {
             LEFT, RIGHT
+        }
+    }
+
+    private static class SplitResult {
+        boolean split;
+        boolean shouldExplode;
+
+        private SplitResult(boolean split, boolean shouldExplode) {
+            this.split = split;
+            this.shouldExplode = shouldExplode;
+        }
+
+        public static SplitResult split() {
+            return new SplitResult(true, false);
+        }
+
+        public static SplitResult shouldExplode() {
+            return new SplitResult(true, true);
+        }
+
+        public static SplitResult none() {
+            return new SplitResult(false, false);
+        }
+
+        public boolean isSplit() {
+            return split;
+        }
+
+        public boolean isShouldExplode() {
+            return shouldExplode;
         }
     }
 
