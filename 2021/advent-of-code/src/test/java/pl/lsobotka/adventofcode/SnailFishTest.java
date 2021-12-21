@@ -2,8 +2,12 @@ package pl.lsobotka.adventofcode;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -43,7 +47,9 @@ public class SnailFishTest extends BaseTest {
         final String rawData = "[[1,9],[8,5]]";
         final Snailfish.Fish leftNode = new Snailfish.Fish.FishBuilder().left(1).right(9).build();
         final Snailfish.Fish rightNode = new Snailfish.Fish.FishBuilder().left(8).right(5).build();
-        final Snailfish.Fish expected = new Snailfish.Fish.FishBuilder().leftNode(leftNode).rightNode(rightNode).build();
+        final Snailfish.Fish expected = new Snailfish.Fish.FishBuilder().leftNode(leftNode)
+                .rightNode(rightNode)
+                .build();
 
         final Snailfish.Fish actual = Snailfish.Fish.init(rawData);
         assertEquals(expected, actual);
@@ -227,6 +233,49 @@ public class SnailFishTest extends BaseTest {
         final Snailfish.Fish expected = new Snailfish.Fish.FishBuilder().leftNode(fishG).rightNode(fishL).build();
 
         final Snailfish.Fish actual = Snailfish.add(rawData);
+        assertEquals(expected, actual);
+    }
+
+    private static Stream<Arguments> magnitudeExample() {
+        return Stream.of(Arguments.of("[[9,1],[1,9]]", 129), Arguments.of("[[1,2],[[3,4],5]]", 143),
+                Arguments.of("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]", 1384),
+                Arguments.of("[[[[1,1],[2,2]],[3,3]],[4,4]]", 445), Arguments.of("[[[[3,0],[5,3]],[4,4]],[5,5]]", 791),
+                Arguments.of("[[[[5,0],[7,4]],[5,5]],[6,6]]", 1137),
+                Arguments.of("[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]", 3488));
+    }
+
+    @ParameterizedTest
+    @MethodSource("magnitudeExample")
+    public void magnitude_example(final String rawData, final long expected) {
+        final Snailfish.Fish fish = Snailfish.Fish.init(rawData);
+        final long actual = fish.getMagnitude();
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void magnitude_complexExample() {
+        final List<String> rawData = Arrays.asList("[[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]]",
+                "[[[5,[2,8]],4],[5,[[9,9],0]]]", "[6,[[[6,2],[5,6]],[[7,6],[4,7]]]]",
+                "[[[6,[0,7]],[0,9]],[4,[9,[9,0]]]]", "[[[7,[6,4]],[3,[1,3]]],[[[5,5],1],9]]",
+                "[[6,[[7,3],[3,2]]],[[[3,8],[5,7]],4]]", "[[[[5,4],[7,7]],8],[[8,3],8]]", "[[9,3],[[9,9],[6,[4,9]]]]",
+                "[[2,[[7,7],7]],[[5,8],[[9,3],[0,2]]]]", "[[[[5,2],5],[8,[3,7]]],[[5,[7,5]],[4,4]]]");
+
+        final Snailfish.Fish fish = Snailfish.add(rawData);
+        final long actual = fish.getMagnitude();
+        assertEquals(4140, actual);
+    }
+
+    private static Stream<Arguments> testResourceFile() {
+        return Stream.of(Arguments.of("SnailFish", 4057));
+    }
+
+    @ParameterizedTest
+    @MethodSource("testResourceFile")
+    public void magnitude_testResourceFile(final String fileName, final long expected) throws Exception {
+        final List<String> rawData = getFileInput(fileName);
+
+        final Snailfish.Fish fish = Snailfish.add(rawData);
+        final long actual = fish.getMagnitude();
         assertEquals(expected, actual);
     }
 

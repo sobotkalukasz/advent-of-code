@@ -99,6 +99,12 @@ public class Snailfish {
             return newFish;
         }
 
+        public long getMagnitude(){
+            final long leftMagnitude = isLeft() ? this.left : this.leftNode.getMagnitude();
+            final long rightMagnitude = isRight() ? this.right : this.rightNode.getMagnitude();
+            return leftMagnitude * 3 + rightMagnitude * 2;
+        }
+
         protected void validate() {
             Explosion exploded;
             SplitResult splitResult;
