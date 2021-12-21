@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 public class Snailfish {
 
@@ -100,21 +101,22 @@ public class Snailfish {
 
         protected void validate() {
             Explosion exploded;
+            SplitResult splitResult;
             do {
-                exploded = validateExplosion(0);
+                do {
+                    exploded = validateExplosion(0);
+                } while (Objects.nonNull(exploded));
 
-                SplitResult splitResult;
                 do {
                     splitResult = validateSplit(0);
                 } while (splitResult.isSplit() && !splitResult.shouldExplode);
 
-            } while (Objects.nonNull(exploded));
+            } while (splitResult.isSplit());
         }
 
         private Explosion validateExplosion(final int nestedLevel) {
             Explosion exploded = null;
-            if (nestedLevel >= 3 && !isMoreNestedLevel()) {
-            //if (nestedLevel >= 3) {
+            if (nestedLevel >= 3 && canExplode()) {
                 exploded = explode();
             } else {
                 if (isLeftNode()) {
@@ -147,40 +149,70 @@ public class Snailfish {
             return exploded;
         }
 
-        private boolean isMoreNestedLevel(){
-            boolean moreLevel = false;
-            if(isLeftNode()){
-               moreLevel = leftNode.isLeftNode() || leftNode.isRightNode();
-            } else if(!moreLevel && isRightNode()){
-                moreLevel = rightNode.isLeftNode() || rightNode.isRightNode();
+        private boolean canExplode() {
+            boolean isMoreLevels = false;
+            if (isLeftNode()) {
+                isMoreLevels = leftNode.isLeftNode() || leftNode.isRightNode();
             }
-            return moreLevel;
+            if (!isMoreLevels && isRightNode()) {
+                isMoreLevels = rightNode.isLeftNode() || rightNode.isRightNode();
+            }
+            return !isMoreLevels;
+        }
+
+        private boolean canExplode(final Fish node) {
+            boolean isMoreLevels = node.isLeftNode() || node.isRightNode();
+            return !isMoreLevels;
         }
 
         private Explosion explode() {
             Explosion explosion = null;
             if (isLeftNode()) {
-                this.left = 0;
-                explosion = Explosion.left(leftNode.left);
-                if (isRight()) {
-                    right += leftNode.right;
-                } else {
-                    if(rightNode.isLeft()){
-                        rightNode.left += leftNode.right;
+                if (canExplode(leftNode)) {
+                    this.left = 0;
+                    explosion = Explosion.left(leftNode.left);
+                    if (isRight()) {
+                        right += leftNode.right;
+                    } else {
+                        applyLeftExplosion(rightNode, leftNode.right);
                     }
-                }
-                this.leftNode = null;
-            } else if (isRightNode()) {
-                this.right = 0;
-                explosion = Explosion.right(rightNode.right);
-                if (isLeft()) {
-                    left += rightNode.left;
+                    this.leftNode = null;
                 } else {
-                    leftNode.right += rightNode.left;
+                    explosion = leftNode.explode();
                 }
-                this.rightNode = null;
+
+            }
+            if (isRightNode() && Objects.isNull(explosion)) {
+                if (canExplode(rightNode)) {
+                    this.right = 0;
+                    explosion = Explosion.right(rightNode.right);
+                    if (isLeft()) {
+                        left += rightNode.left;
+                    } else {
+                        applyRightExplosion(leftNode, rightNode.left);
+                    }
+                    this.rightNode = null;
+                } else {
+                    explosion = rightNode.explode();
+                }
             }
             return explosion;
+        }
+
+        private void applyLeftExplosion(final Fish node, final int value) {
+            if (isLeft()) {
+                node.left += value;
+            } else {
+                applyLeftExplosion(node.leftNode, value);
+            }
+        }
+
+        private void applyRightExplosion(final Fish node, final int value) {
+            if (isRight()) {
+                node.right += value;
+            } else {
+                applyRightExplosion(node.rightNode, value);
+            }
         }
 
         private Explosion applyRightExplosion(Explosion exploded) {
@@ -212,24 +244,34 @@ public class Snailfish {
             SplitResult splitResult = SplitResult.none();
             if (this.isLeft()) {
                 if (shouldSplit(this.left)) {
-                    final Fish leftFish = applySplit(this.left);
-                    this.leftNode = leftFish;
+                    final Fish newLeftNode = applySplit(this.left);
+                    this.leftNode = newLeftNode;
                     this.left = null;
                     splitResult = nestedLevel >= 3 ? SplitResult.shouldExplode() : SplitResult.split();
                 }
-            } else {
-                splitResult = this.leftNode.validateSplit(nestedLevel + 1);
+            }
+
+            if (!splitResult.shouldExplode && this.isLeftNode()) {
+                final SplitResult result = this.leftNode.validateSplit(nestedLevel + 1);
+                if (result.isSplit()) {
+                    splitResult = result;
+                }
             }
 
             if (!splitResult.isShouldExplode() && this.isRight()) {
                 if (shouldSplit(this.right)) {
-                    final Fish rightFish = applySplit(this.right);
-                    this.rightNode = rightFish;
+                    final Fish newRightNode = applySplit(this.right);
+                    this.rightNode = newRightNode;
                     this.right = null;
                     splitResult = nestedLevel >= 3 ? SplitResult.shouldExplode() : SplitResult.split();
                 }
-            } else if (!splitResult.isShouldExplode()) {
-                splitResult = this.rightNode.validateSplit(nestedLevel + 1);
+            }
+
+            if (!splitResult.isShouldExplode() && this.isRightNode()) {
+                final SplitResult result = this.rightNode.validateSplit(nestedLevel + 1);
+                if (result.isSplit()) {
+                    splitResult = result;
+                }
             }
 
             return splitResult;
@@ -249,20 +291,20 @@ public class Snailfish {
 
         @Override
         public String toString() {
-            final StringBuilder sb = new StringBuilder("Fish{");
+            final StringBuilder sb = new StringBuilder("[");
             if (Objects.nonNull(left)) {
-                sb.append("left=").append(left);
+                sb.append(left);
             }
             if (Objects.nonNull(leftNode)) {
-                sb.append("leftNode=").append(leftNode);
+                sb.append(leftNode);
             }
             if (Objects.nonNull(right)) {
-                sb.append(", right=").append(right);
+                sb.append(",").append(right);
             }
             if (Objects.nonNull(rightNode)) {
-                sb.append(", rightNode=").append(rightNode);
+                sb.append(",").append(rightNode);
             }
-            sb.append('}');
+            sb.append(']');
             return sb.toString();
         }
 
@@ -285,6 +327,7 @@ public class Snailfish {
         }
     }
 
+    @ToString
     private static class Explosion {
 
         Integer value;
@@ -316,7 +359,7 @@ public class Snailfish {
         }
 
         public boolean isRight() {
-            return type.equals(Type.RIGHT)&& shouldApply();
+            return type.equals(Type.RIGHT) && shouldApply();
         }
 
         enum Type {
@@ -324,6 +367,7 @@ public class Snailfish {
         }
     }
 
+    @ToString
     private static class SplitResult {
         boolean split;
         boolean shouldExplode;
