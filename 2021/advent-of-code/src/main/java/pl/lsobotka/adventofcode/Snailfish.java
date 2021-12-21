@@ -2,8 +2,11 @@ package pl.lsobotka.adventofcode;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.InputMismatchException;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -17,6 +20,22 @@ public class Snailfish {
     protected static Fish add(final List<String> rawInput) {
         final List<Fish> fishes = rawInput.stream().map(Fish::init).collect(Collectors.toList());
         return fishes.stream().reduce(Fish::add).orElseThrow(IllegalArgumentException::new);
+    }
+
+    protected static long findBiggestMagnitude(final List<String> rawInput) {
+        final Map<Fish, Long> magnitudeMap = new HashMap<>();
+
+        for (int i = 0; i < rawInput.size() - 1; i++) {
+            for (int j = i + 1; j < rawInput.size(); j++) {
+                final Fish add = Snailfish.add(Arrays.asList(rawInput.get(i), rawInput.get(j)));
+                magnitudeMap.put(add, add.getMagnitude());
+
+                final Fish addReversed = Snailfish.add(Arrays.asList(rawInput.get(j), rawInput.get(i)));
+                magnitudeMap.put(addReversed, addReversed.getMagnitude());
+            }
+        }
+
+        return magnitudeMap.values().stream().max(Long::compareTo).orElse(0L);
     }
 
     @Builder
@@ -99,7 +118,7 @@ public class Snailfish {
             return newFish;
         }
 
-        public long getMagnitude(){
+        public long getMagnitude() {
             final long leftMagnitude = isLeft() ? this.left : this.leftNode.getMagnitude();
             final long rightMagnitude = isRight() ? this.right : this.rightNode.getMagnitude();
             return leftMagnitude * 3 + rightMagnitude * 2;
