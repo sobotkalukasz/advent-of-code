@@ -109,7 +109,7 @@ public class Snailfish {
 
                 do {
                     splitResult = validateSplit(0);
-                } while (splitResult.isSplit() && !splitResult.shouldExplode);
+                } while (splitResult.isSplit() && !splitResult.isShouldExplode());
 
             } while (splitResult.isSplit());
         }
@@ -124,7 +124,7 @@ public class Snailfish {
                     if (Objects.nonNull(exploded)) {
                         if (exploded.isRight()) {
                             if (isRight()) {
-                                right += exploded.value;
+                                right += exploded.getValue();
                                 exploded.erase();
                             } else if (isRightNode()) {
                                 exploded = rightNode.applyRightExplosion(exploded);
@@ -137,7 +137,7 @@ public class Snailfish {
                     if (Objects.nonNull(exploded)) {
                         if (exploded.isLeft()) {
                             if (isLeft()) {
-                                left += exploded.value;
+                                left += exploded.getValue();
                                 exploded.erase();
                             } else if (isLeftNode()) {
                                 exploded = leftNode.applyLeftExplosion(exploded);
@@ -244,8 +244,7 @@ public class Snailfish {
             SplitResult splitResult = SplitResult.none();
             if (this.isLeft()) {
                 if (shouldSplit(this.left)) {
-                    final Fish newLeftNode = applySplit(this.left);
-                    this.leftNode = newLeftNode;
+                    this.leftNode = applySplit(this.left);
                     this.left = null;
                     splitResult = nestedLevel >= 3 ? SplitResult.shouldExplode() : SplitResult.split();
                 }
@@ -260,8 +259,7 @@ public class Snailfish {
 
             if (!splitResult.isShouldExplode() && this.isRight()) {
                 if (shouldSplit(this.right)) {
-                    final Fish newRightNode = applySplit(this.right);
-                    this.rightNode = newRightNode;
+                    this.rightNode = applySplit(this.right);
                     this.right = null;
                     splitResult = nestedLevel >= 3 ? SplitResult.shouldExplode() : SplitResult.split();
                 }
@@ -330,8 +328,8 @@ public class Snailfish {
     @ToString
     private static class Explosion {
 
-        Integer value;
-        Type type;
+        private Integer value;
+        private final Type type;
 
         private Explosion(Integer value, Type type) {
             this.value = value;
@@ -344,6 +342,10 @@ public class Snailfish {
 
         public static Explosion right(final int value) {
             return new Explosion(value, Type.RIGHT);
+        }
+
+        public Integer getValue() {
+            return value;
         }
 
         public void erase() {

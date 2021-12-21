@@ -41,9 +41,9 @@ public class SnailFishTest extends BaseTest {
     @Test
     public void parsing_withInnerFishXAndY() {
         final String rawData = "[[1,9],[8,5]]";
-        final Snailfish.Fish fishX = new Snailfish.Fish.FishBuilder().left(1).right(9).build();
-        final Snailfish.Fish fishY = new Snailfish.Fish.FishBuilder().left(8).right(5).build();
-        final Snailfish.Fish expected = new Snailfish.Fish.FishBuilder().leftNode(fishX).rightNode(fishY).build();
+        final Snailfish.Fish leftNode = new Snailfish.Fish.FishBuilder().left(1).right(9).build();
+        final Snailfish.Fish rightNode = new Snailfish.Fish.FishBuilder().left(8).right(5).build();
+        final Snailfish.Fish expected = new Snailfish.Fish.FishBuilder().leftNode(leftNode).rightNode(rightNode).build();
 
         final Snailfish.Fish actual = Snailfish.Fish.init(rawData);
         assertEquals(expected, actual);
