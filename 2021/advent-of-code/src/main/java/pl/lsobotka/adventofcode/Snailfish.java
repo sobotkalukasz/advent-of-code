@@ -15,6 +15,9 @@ import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+/*
+ * https://adventofcode.com/2021/day/18
+ * */
 public class Snailfish {
 
     protected static Fish add(final List<String> rawInput) {

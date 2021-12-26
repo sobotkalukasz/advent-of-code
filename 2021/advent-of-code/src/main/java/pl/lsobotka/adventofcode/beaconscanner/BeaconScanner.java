@@ -9,6 +9,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/*
+ * https://adventofcode.com/2021/day/19
+ * */
 public class BeaconScanner {
 
     private final Map<String, Point> alignScanners;
