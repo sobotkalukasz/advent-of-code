@@ -3,7 +3,7 @@ package pl.lsobotka.adventofcode;
 import java.util.ArrayList;
 import java.util.List;
 
-public record Coordinate(int row, int column) {
+public record Coordinate(int row, int column) implements Comparable<Coordinate> {
 
     public List<Coordinate> getAdjacent(final int maxRow, final int maxCol) {
         final List<Coordinate> adjacent = new ArrayList<>();
@@ -49,4 +49,14 @@ public record Coordinate(int row, int column) {
         return adjacent;
     }
 
+    public Coordinate add(final Coordinate toAdd) {
+        return new Coordinate(this.row + toAdd.row(), this.column + toAdd.column());
+    }
+
+    @Override
+    public int compareTo(Coordinate o) {
+        return (this.row < o.row) ?
+                -1 :
+                ((this.row > o.row) ? 1 : ((this.column < o.column) ? -1 : ((this.column == o.column) ? 0 : 1)));
+    }
 }
