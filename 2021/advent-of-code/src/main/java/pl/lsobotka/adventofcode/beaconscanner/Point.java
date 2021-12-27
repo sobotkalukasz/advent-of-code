@@ -2,7 +2,7 @@ package pl.lsobotka.adventofcode.beaconscanner;
 
 import java.util.function.Function;
 
-record Point(int x, int y, int z) {
+public record Point(int x, int y, int z) {
     public static Point parse(final String input) {
         final String[] split = input.split(",");
         return new Point(Integer.parseInt(split[0]), Integer.parseInt(split[1]), Integer.parseInt(split[2]));
