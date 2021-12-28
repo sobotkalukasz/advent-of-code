@@ -7,8 +7,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import pl.lsobotka.adventofcode.beaconscanner.Point;
-
 /*
  * https://adventofcode.com/2021/day/22
  * */
@@ -20,33 +18,6 @@ public class ReactorReboot {
     public ReactorReboot(final List<String> instructions, final String limit) {
         this.instructions = instructions.stream().map(Range::new).collect(Collectors.toList());
         this.limit = Optional.ofNullable(limit).map(Range::new).orElseGet(Range::max);
-    }
-
-    public int applyInstructions() {
-        final Set<Point> onPoints = new HashSet<>();
-        instructions.forEach(instr -> applyInstruction(instr, onPoints));
-        return onPoints.size();
-    }
-
-    private void applyInstruction(final Range range, final Set<Point> onPoints) {
-        for (int x = range.minX; x <= range.maxX; x++) {
-            if (x >= limit.minX && x <= limit.maxX) {
-                for (int y = range.minY; y <= range.maxY; y++) {
-                    if (y >= limit.minY && y <= limit.maxY) {
-                        for (int z = range.minZ; z <= range.maxZ; z++) {
-                            if (z >= limit.minZ && z <= limit.maxZ) {
-                                final Point actual = new Point(x, y, z);
-                                if (range.type.equals(Type.ON)) {
-                                    onPoints.add(actual);
-                                } else {
-                                    onPoints.remove(actual);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 
     public long applyBigInstructions() {
@@ -68,7 +39,7 @@ public class ReactorReboot {
             ranges.add(newRange);
         }
 
-        return ranges.stream().filter(Range::isOn).map(Range::getSize).reduce(Long::sum).orElse(0L);
+        return ranges.stream().filter(Range::isOn).map(r -> r.getSize(limit)).reduce(Long::sum).orElse(0L);
     }
 
     static class Range {
@@ -105,7 +76,7 @@ public class ReactorReboot {
             maxZ = Integer.parseInt(zValues[1]);
         }
 
-        public Range(final Type type, final int minX, final int maxX, final int minY, final int maxY, final int minZ,
+        private Range(final Type type, final int minX, final int maxX, final int minY, final int maxY, final int minZ,
                 final int maxZ) {
             this.type = type;
             this.minX = minX;
@@ -129,8 +100,21 @@ public class ReactorReboot {
             return new Range(this.type, this.minX, this.maxX, this.minY, this.maxY, this.minZ, this.maxZ);
         }
 
-        public long getSize() {
-            return (long) (maxX - minX + 1) * (maxY - minY + 1) * (maxZ - minZ + 1);
+        public long getSize(final Range limit) {
+            long size = 0;
+
+            if (isOverlapping(limit)) {
+                final int maxX = Math.min(this.maxX, limit.maxX);
+                final int minX = Math.max(this.minX, limit.minX);
+                final int maxY = Math.min(this.maxY, limit.maxY);
+                final int minY = Math.max(this.minY, limit.minY);
+                final int maxZ = Math.min(this.maxZ, limit.maxZ);
+                final int minZ = Math.max(this.minZ, limit.minZ);
+
+                size = (long) (maxX - minX + 1) * (maxY - minY + 1) * (maxZ - minZ + 1);
+            }
+
+            return size;
         }
 
         public boolean isValid() {
@@ -151,7 +135,6 @@ public class ReactorReboot {
             final boolean zInside = isZInside(o);
 
             return ((left || right) || xInside) && ((bottom || top) || yInside) && ((front || back) || zInside);
-
         }
 
         private boolean isOverlappingLeft(final Range o) {

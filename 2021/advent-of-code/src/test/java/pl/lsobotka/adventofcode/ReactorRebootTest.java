@@ -35,9 +35,9 @@ public class ReactorRebootTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("simpleExample")
-    public void simpleExampleTest(final List<String> instructions, final String limit, final int expected) {
+    public void simpleExampleBigTest(final List<String> instructions, final String limit, final int expected) {
         final ReactorReboot reactorReboot = new ReactorReboot(instructions, limit);
-        final int actual = reactorReboot.applyInstructions();
+        final long actual = reactorReboot.applyBigInstructions();
 
         assertEquals(expected, actual);
     }
@@ -52,7 +52,7 @@ public class ReactorRebootTest extends BaseTest {
     public void testResourceFileTest(final String fileName, final String limit, final int expected) throws Exception {
         final List<String> input = getFileInput(fileName);
         final ReactorReboot reactorReboot = new ReactorReboot(input, limit);
-        final int actual = reactorReboot.applyInstructions();
+        final long actual = reactorReboot.applyBigInstructions();
 
         assertEquals(expected, actual);
     }
@@ -60,15 +60,6 @@ public class ReactorRebootTest extends BaseTest {
     private static Stream<Arguments> testBigResourceFile() {
         return Stream.of(Arguments.of("ReactorReboot_example2", 2758514936282235L),
                 Arguments.of("ReactorReboot", 1319618626668022L));
-    }
-
-    @ParameterizedTest
-    @MethodSource("simpleExample")
-    public void simpleExampleBigTest(final List<String> instructions, final String limit, final int expected) {
-        final ReactorReboot reactorReboot = new ReactorReboot(instructions, limit);
-        final long actual = reactorReboot.applyBigInstructions();
-
-        assertEquals(expected, actual);
     }
 
     @ParameterizedTest
