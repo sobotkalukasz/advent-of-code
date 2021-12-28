@@ -11,6 +11,22 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ReactorRebootTest extends BaseTest {
 
+    private static Stream<Arguments> isOverlapping() {
+        return Stream.of(Arguments.of("x=-10..10,y=-10..10,z=-10..10", "x=-10..10,y=-10..10,z=-10..10", true),
+                Arguments.of("x=-10..10,y=-10..10,z=-10..10", "x=10..11,y=10..11,z=10..11", true),
+                Arguments.of("x=-10..10,y=-10..10,z=-10..10", "x=11..11,y=11..11,z=5..30", false),
+                Arguments.of("x=-10..10,y=-10..10,z=-10..10", "x=11..11,y=11..11,z=11..11", false));
+    }
+
+    @ParameterizedTest
+    @MethodSource("isOverlapping")
+    public void isOverlapping(final String a, final String b, final boolean expected) {
+        final ReactorReboot.Range first = new ReactorReboot.Range(a);
+        final ReactorReboot.Range second = new ReactorReboot.Range(b);
+        final boolean actual = first.isOverlapping(second);
+        assertEquals(expected, actual);
+    }
+
     private static Stream<Arguments> simpleExample() {
         return Stream.of(Arguments.of(
                 List.of("on x=10..12,y=10..12,z=10..12", "on x=11..13,y=11..13,z=11..13", "off x=9..11,y=9..11,z=9..11",
@@ -40,4 +56,31 @@ public class ReactorRebootTest extends BaseTest {
 
         assertEquals(expected, actual);
     }
+
+    private static Stream<Arguments> testBigResourceFile() {
+        return Stream.of(Arguments.of("ReactorReboot_example2", 2758514936282235L),
+                Arguments.of("ReactorReboot", 1319618626668022L));
+    }
+
+    @ParameterizedTest
+    @MethodSource("simpleExample")
+    public void simpleExampleBigTest(final List<String> instructions, final String limit, final int expected) {
+        final ReactorReboot reactorReboot = new ReactorReboot(instructions, limit);
+        final long actual = reactorReboot.applyBigInstructions();
+
+        assertEquals(expected, actual);
+    }
+
+    @ParameterizedTest
+    @MethodSource("testBigResourceFile")
+    public void testBigResourceFileTest(final String fileName, final long expected) throws Exception {
+        final List<String> input = getFileInput(fileName);
+        final ReactorReboot reactorReboot = new ReactorReboot(input, null);
+        final long actual = reactorReboot.applyBigInstructions();
+
+        assertEquals(expected, actual);
+    }
 }
+
+
+
