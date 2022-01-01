@@ -49,6 +49,16 @@ public record Coordinate(int row, int column) implements Comparable<Coordinate> 
         return adjacent;
     }
 
+    public Coordinate getNextRight(final int maxColumn) {
+        final int column = this.column == maxColumn ? 0 : this.column + 1;
+        return new Coordinate(this.row, column);
+    }
+
+    public Coordinate getNextDown(final int maxRow) {
+        final int row = this.row == maxRow ? 0 : this.row + 1;
+        return new Coordinate(row, this.column);
+    }
+
     public Coordinate add(final Coordinate toAdd) {
         return new Coordinate(this.row + toAdd.row(), this.column + toAdd.column());
     }
