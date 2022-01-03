@@ -1,9 +1,13 @@
 package pl.lsobotka.adventofcode;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 /*
@@ -14,31 +18,10 @@ public class MonitoringStation {
     private static final char asteroid = '#';
     private static final Predicate<Character> isAsteroid = c -> c == asteroid;
 
-    private static final UnaryOperator<Coordinate> increaseN = Coordinate::increaseN;
-    private static final UnaryOperator<Coordinate> increaseNE = Coordinate::increaseNE;
-    private static final UnaryOperator<Coordinate> increaseE = Coordinate::increaseE;
-    private static final UnaryOperator<Coordinate> increaseSE = Coordinate::increaseSE;
-    private static final UnaryOperator<Coordinate> increaseS = Coordinate::increaseS;
-    private static final UnaryOperator<Coordinate> increaseSW = Coordinate::increaseSW;
-    private static final UnaryOperator<Coordinate> increaseW = Coordinate::increaseW;
-    private static final UnaryOperator<Coordinate> increaseNW = Coordinate::increaseNW;
-
-    private static final List<UnaryOperator<Coordinate>> increaseStrategies = List.of(increaseN, increaseNE, increaseE,
-            increaseSE, increaseS, increaseSW, increaseW, increaseNW);
-
     private final Set<Coordinate> asteroids;
-    private int sizeColumn;
-    private int sizeRow;
-
-    final Predicate<Coordinate> isValid = test -> {
-        if (test.column < 0 || test.row < 0) return false;
-        return test.column <= sizeColumn && test.row <= sizeRow;
-    };
 
     public MonitoringStation(char[][] asteroidsMap) {
         this.asteroids = initAsteroids(asteroidsMap);
-        this.sizeRow = asteroidsMap.length - 1;
-        this.sizeColumn = sizeRow > 0 ? asteroidsMap[0].length - 1 : 0;
     }
 
     private Set<Coordinate> initAsteroids(char[][] asteroidsMap) {
@@ -59,74 +42,57 @@ public class MonitoringStation {
         return locations.values().stream().max(Integer::compareTo).orElse(0);
     }
 
-    public int getValueForAsteroid(final int asteroidNumber) {
+    public int getValueForDestroyedAsteroid(final int asteroidNumber) {
+        final Map<Coordinate, Integer> visibleAsteroidCount = getCountOfAsteroids();
+        final Coordinate bestLocation = visibleAsteroidCount.entrySet()
+                .stream()
+                .max(Comparator.comparingInt(Map.Entry::getValue))
+                .map(Map.Entry::getKey)
+                .orElseGet(() -> new Coordinate(0, 0));
 
-        return 0;
+        final List<Coordinate> destroyed = destroyAllAsteroids(bestLocation);
+
+        int result = 0;
+        if (destroyed.size() >= asteroidNumber) {
+            final Coordinate asteroid = destroyed.get(asteroidNumber - 1);
+            result = asteroid.column() * 100 + asteroid.row();
+        }
+        return result;
+    }
+
+    private List<Coordinate> destroyAllAsteroids(final Coordinate start) {
+
+        final Map<Double, List<Coordinate>> byAngle = asteroids.stream()
+                .filter(c -> !c.equals(start))
+                .sorted(Comparator.comparing(start::distance))
+                .collect(Collectors.groupingBy(start::getAngle, Collectors.toList()));
+        final List<Double> angles = byAngle.keySet().stream().sorted().collect(Collectors.toList());
+
+        final List<Coordinate> removed = new ArrayList<>();
+
+        while (removed.size() < asteroids.size() - 1) {
+            angles.forEach(angle -> {
+                final List<Coordinate> coordinates = byAngle.get(angle);
+                if (!coordinates.isEmpty()) {
+                    final Coordinate toRemove = coordinates.get(0);
+                    coordinates.remove(toRemove);
+                    removed.add(toRemove);
+                }
+            });
+        }
+
+        return removed;
     }
 
     private Map<Coordinate, Integer> getCountOfAsteroids() {
-        return this.asteroids.stream().collect(Collectors.toMap(
-                Function.identity(), c -> countVisibleAsteroids(c.copy(), new HashSet<>(asteroids))));
+        return this.asteroids.stream()
+                .collect(Collectors.toMap(Function.identity(),
+                        c -> countVisibleAsteroids(c.copy(), new HashSet<>(asteroids))));
     }
 
     private int countVisibleAsteroids(Coordinate coordinate, Set<Coordinate> asteroids) {
-        asteroids.remove(coordinate);
+        return (int) asteroids.stream().filter(c -> !c.equals(coordinate)).map(coordinate::getAngle).distinct().count();
 
-        for (UnaryOperator<Coordinate> strategy : increaseStrategies) {
-            removeNotVisibleAsteroids(coordinate, asteroids, strategy);
-        }
-
-        removeNotVisibleAsteroids(coordinate, asteroids);
-        for (int i = 0; i < 3; i++) {
-            asteroids = asteroids.stream().map(c -> c.rotate90(sizeRow)).collect(Collectors.toSet());
-            coordinate = coordinate.rotate90(sizeRow);
-            removeNotVisibleAsteroids(coordinate, asteroids);
-        }
-
-        return asteroids.size();
-    }
-
-    private void removeNotVisibleAsteroids(Coordinate coordinate, final Set<Coordinate> asteroids, UnaryOperator<Coordinate> increaseStrategy) {
-        Coordinate temp = increaseStrategy.apply(coordinate);
-        boolean found = false;
-        while (isValid.test(temp)) {
-            if (found) {
-                asteroids.remove(temp);
-            } else if (asteroids.contains(temp)) {
-                found = true;
-            }
-            temp = increaseStrategy.apply(temp);
-        }
-    }
-
-    private void removeNotVisibleAsteroids(final Coordinate coordinate, final Set<Coordinate> asteroids) {
-        int increase = 2;
-        Coordinate toTest = new Coordinate(coordinate.row - increase, coordinate.column);
-        while (isValid.test(toTest)) {
-            for (int i = 1; i < increase; i++) {
-                Coordinate temp = new Coordinate(toTest.row, toTest.column + i);
-                boolean found = false;
-                while (isValid.test(temp)) {
-                    if (found) {
-                        asteroids.remove(temp);
-                    } else if (asteroids.contains(temp)) {
-                        found = true;
-                    }
-                    temp = new Coordinate(temp.row - increase, temp.column + i);
-                }
-                temp = new Coordinate(toTest.row, toTest.column - i);
-                found = false;
-                while (isValid.test(temp)) {
-                    if (found) {
-                        asteroids.remove(temp);
-                    } else if (asteroids.contains(temp)) {
-                        found = true;
-                    }
-                    temp = new Coordinate(temp.row - increase, temp.column - i);
-                }
-            }
-            toTest = new Coordinate(coordinate.row - ++increase, coordinate.column);
-        }
     }
 
     record Coordinate(int row, int column) {
@@ -135,44 +101,18 @@ public class MonitoringStation {
             return new Coordinate(row, column);
         }
 
+        public double getAngle(final Coordinate other) {
+            final double angle = 90 - Math.toDegrees(Math.atan2(row - other.row(), other.column() - column));
+            return angle < 0 ? angle + 360 : angle;
+        }
+
+        public int distance(final Coordinate other) {
+            return Math.abs(this.row - other.row()) + Math.abs(this.column - other.column());
+        }
+
         public Coordinate copy() {
             return new Coordinate(row, column);
         }
 
-        Coordinate increaseN() {
-            return new Coordinate(row - 1, column);
-        }
-
-        Coordinate increaseNE() {
-            return new Coordinate(row - 1, column + 1);
-        }
-
-        Coordinate increaseE() {
-            return new Coordinate(row, column + 1);
-        }
-
-        Coordinate increaseSE() {
-            return new Coordinate(row + 1, column + 1);
-        }
-
-        Coordinate increaseS() {
-            return new Coordinate(row + 1, column);
-        }
-
-        Coordinate increaseSW() {
-            return new Coordinate(row + 1, column - 1);
-        }
-
-        Coordinate increaseW() {
-            return new Coordinate(row, column - 1);
-        }
-
-        Coordinate increaseNW() {
-            return new Coordinate(row - 1, column - 1);
-        }
-
-        Coordinate rotate90(int maxSize) {
-            return new Coordinate(maxSize - column, row);
-        }
     }
 }
