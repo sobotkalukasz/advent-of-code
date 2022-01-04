@@ -47,6 +47,14 @@ public class IntCode {
         return output;
     }
 
+    public List<Long> executeUntilExpectedOutputSize(final int expectedOutputSize) {
+        output.clear();
+        while (output.size() !=expectedOutputSize && canExecute()) {
+            executeOperation();
+        }
+        return output;
+    }
+
     private boolean canExecute(){
         return memory.canExecute(index.incrementAndGet());
     }
