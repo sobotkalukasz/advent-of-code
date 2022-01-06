@@ -7,6 +7,9 @@ import java.util.stream.Stream;
 
 import lombok.EqualsAndHashCode;
 
+/*
+ * https://adventofcode.com/2019/day/12
+ * */
 public class NBodyProblem {
 
     private final List<Moon> moons;
