@@ -3,6 +3,9 @@ package pl.lsobotka.adventofcode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import lombok.EqualsAndHashCode;
 
 public class NBodyProblem {
 
@@ -15,28 +18,60 @@ public class NBodyProblem {
                 .toList();
     }
 
-    public long getMoonEnergyAfter(int steps) {
+    public long getMoonEnergyAfterSteps(int steps) {
         final List<Moon> actual = moons.stream().map(Moon::copy).collect(Collectors.toList());
 
         while (steps-- > 0) {
-            actual.forEach(m -> {
-                final ArrayList<Moon> other = new ArrayList<>(actual);
-                other.remove(m);
-                m.adjustVelocity(other);
-            });
-
-            actual.forEach(Moon::applyVelocity);
+            applyStep(actual);
         }
 
-        return actual.stream().map(Moon::getTotalEnergy).reduce(Long::sum).orElse(0L);
+        return actual.stream().mapToLong(Moon::getTotalEnergy).sum();
     }
 
     public long countDaysToRepeat() {
-        //TODO: implement
+        final List<Moon> moonX = moons.stream().map(m -> new Moon(m.position.x(), 0, 0)).collect(Collectors.toList());
+        final List<Moon> moonY = moons.stream().map(m -> new Moon(0, m.position.y(), 0)).collect(Collectors.toList());
+        final List<Moon> moonZ = moons.stream().map(m -> new Moon(0, 0, m.position.z())).collect(Collectors.toList());
 
-        return 0;
+        final long xFreq = getFrequency(moonX);
+        final long yFreq = getFrequency(moonY);
+        final long zFreq = getFrequency(moonZ);
+
+        return Stream.of(xFreq, yFreq, zFreq).reduce(this::lessCommonMultiple).orElse(0L);
     }
 
+    private long getFrequency(final List<Moon> initialState) {
+        final List<Moon> actual = initialState.stream().map(Moon::copy).collect(Collectors.toList());
+
+        long cycle = 0;
+        do {
+            applyStep(actual);
+            cycle++;
+        } while (!initialState.equals(actual));
+
+        return cycle;
+    }
+
+    private long lessCommonMultiple(long a, long b) {
+        long bigger = Math.max(a, b);
+        long lower = Math.min(a, b);
+        long lcm = bigger;
+        while (lcm % lower != 0) {
+            lcm += bigger;
+        }
+        return lcm;
+    }
+
+    private void applyStep(final List<Moon> moons) {
+        moons.forEach(m -> {
+            final ArrayList<Moon> other = new ArrayList<>(moons);
+            other.remove(m);
+            m.adjustVelocity(other);
+        });
+        moons.forEach(Moon::applyVelocity);
+    }
+
+    @EqualsAndHashCode
     static class Moon {
         private Point position;
         private Point velocity;
@@ -74,7 +109,6 @@ public class NBodyProblem {
         private long kineticEnergy() {
             return Math.abs(velocity.x()) + Math.abs(velocity.y()) + Math.abs(velocity.z());
         }
-
     }
 
     record Point(int x, int y, int z) {

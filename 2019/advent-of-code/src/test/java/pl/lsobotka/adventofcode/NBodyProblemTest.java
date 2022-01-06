@@ -26,7 +26,7 @@ public class NBodyProblemTest {
     @MethodSource("totalEnergyTestResource")
     public void getTotalEnergy(final List<List<Integer>> input, final int steps, final long expected) {
         final NBodyProblem nBodyProblem = new NBodyProblem(input);
-        final long actual = nBodyProblem.getMoonEnergyAfter(steps);
+        final long actual = nBodyProblem.getMoonEnergyAfterSteps(steps);
         assertEquals(expected, actual);
     }
 
@@ -37,7 +37,7 @@ public class NBodyProblemTest {
                         Arrays.asList(List.of(-8, -10, 0), List.of(5, 5, 10), List.of(2, -7, 3), List.of(9, -8, -3)),
                         4686774924L), Arguments.of(
                         Arrays.asList(List.of(16, -11, 2), List.of(0, -4, 7), List.of(6, 4, -10), List.of(-3, -2, -4)),
-                        -1));
+                        374307970285176L));
     }
 
     @ParameterizedTest
