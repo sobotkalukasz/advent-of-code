@@ -1,6 +1,9 @@
 package pl.lsobotka.adventofcode;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -40,16 +43,12 @@ public class IntCode {
     }
 
     public List<Long> executeUntilOutput() {
-        output.clear();
-        while (output.isEmpty() && canExecute()) {
-            executeOperation();
-        }
-        return output;
+        return executeUntilExpectedOutputSize(1);
     }
 
     public List<Long> executeUntilExpectedOutputSize(final int expectedOutputSize) {
         output.clear();
-        while (output.size() !=expectedOutputSize && canExecute()) {
+        while (output.size() != expectedOutputSize && canExecute()) {
             executeOperation();
         }
         return output;

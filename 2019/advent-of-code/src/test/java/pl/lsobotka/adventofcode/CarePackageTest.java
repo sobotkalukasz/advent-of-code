@@ -27,4 +27,22 @@ public class CarePackageTest extends BaseTest {
         int actual = carePackage.countBlockTiles();
         assertEquals(expected, actual);
     }
+
+    private static Stream<Arguments> scoreTestResourceFile() {
+        return Stream.of(Arguments.of("CarePackage", 17336));
+    }
+
+    @ParameterizedTest
+    @MethodSource("scoreTestResourceFile")
+    public void getScoreTest(String fileName, long expected) throws Exception {
+        long[] program = getFileInput(fileName).stream()
+                .map(s -> s.split(","))
+                .flatMap(Stream::of)
+                .mapToLong(Long::valueOf)
+                .toArray();
+
+        final CarePackage carePackage = new CarePackage(program);
+        long actual = carePackage.getTheScore();
+        assertEquals(expected, actual);
+    }
 }

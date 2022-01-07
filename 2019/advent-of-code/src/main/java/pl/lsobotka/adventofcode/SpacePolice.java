@@ -40,7 +40,6 @@ public class SpacePolice {
 
     private static class PaintingRobot {
         final Set<Coordinate> whitePanels;
-        //final Set<Coordinate> blackPanels;
         final Set<Coordinate> paintedPanels;
 
         Coordinate actualPosition;
