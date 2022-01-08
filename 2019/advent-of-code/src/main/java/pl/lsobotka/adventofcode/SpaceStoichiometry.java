@@ -30,18 +30,29 @@ public class SpaceStoichiometry {
         });
     }
 
-    public long determineAmountOfOre() {
-        final Map<Chemical, Long> reaction = new HashMap<>();
+    public long determineMinimalOreToProduce(final long fuelCount) {
         final Chemical fuel = getChemicalByType(FUEL);
-        completeReaction(reaction, fuel, fuel.qty());
+        final HashMap<String, Long> leftover = new HashMap<>();
+        return instructions.get(fuel).stream().map(c -> countOre(c, leftover, fuelCount)).reduce(Long::sum).orElse(0L);
+    }
 
-        final List<Chemical> chemicalsFromOre = reaction.entrySet()
-                .stream()
-                .filter(e -> instructions.get(e.getKey()).stream().anyMatch(c -> c.type().equals(ORE)))
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toList());
+    public long determineMaxFuelFromOre(final long totalOre) {
+        long min = 1;
+        long max = totalOre;
 
-        return chemicalsFromOre.stream().mapToLong(c -> getOreForChemical(c.type(), reaction.get(c))).sum();
+        while (min <= max) {
+            final long mid = (max - min) / 2 + min;
+            final long oreCount = determineMinimalOreToProduce(mid);
+            if (oreCount < totalOre) {
+                min = mid + 1;
+            } else if (oreCount > totalOre) {
+                max = mid - 1;
+            } else {
+                min = max = mid + 1;
+            }
+        }
+
+        return min - 1;
     }
 
     private Chemical getChemicalByType(final String type) {
@@ -52,35 +63,25 @@ public class SpaceStoichiometry {
                 .orElseThrow(IllegalArgumentException::new);
     }
 
-    private void completeReaction(final Map<Chemical, Long> reaction, final Chemical chemical, final long multiply) {
+    private long countOre(final Chemical chemical, final Map<String, Long> leftovers, final long toProduce) {
         if (chemical.type.equals(ORE)) {
-            return;
+            return toProduce * chemical.required();
+        } else {
+            final Chemical chemicalToProduce = getChemicalByType(chemical.type());
+            final long required = toProduce * chemical.required() - leftovers.getOrDefault(chemical.type(), 0L);
+            final long multiply = chemicalToProduce.required();
+            final long create = (long) Math.ceil(required / (double) multiply);
+            final long leftover = multiply * create - required;
+            leftovers.compute(chemical.type(), (key, oldValue) -> leftover == 0 ? null : leftover);
+            return instructions.get(chemical)
+                    .stream()
+                    .map(c -> countOre(c, leftovers, create))
+                    .reduce(Long::sum)
+                    .orElse(0L);
         }
-
-        if (Objects.isNull(reaction.computeIfPresent(chemical, (k, v) -> v = Long.sum(v, chemical.qty() * multiply)))) {
-            reaction.put(chemical, chemical.qty() * multiply);
-        }
-        final Chemical chemicalByType = getChemicalByType(chemical.type());
-        final long nextLevelMultiplier = ((chemical.qty() * multiply) / chemicalByType.qty()) + (
-                (chemical.qty() * multiply) % chemicalByType.qty() == 0 ? 0 : 1);
-
-        this.instructions.get(chemical).forEach(chem -> completeReaction(reaction, chem, nextLevelMultiplier));
     }
 
-    private long getOreForChemical(final String type, final long min) {
-        final Chemical chemical = getChemicalByType(type);
-        final long qty = chemical.qty();
-        final long multiply = (min / qty) + (min % qty == 0 ? 0 : 1);
-        final long oreQty = instructions.get(chemical)
-                .stream()
-                .filter(c -> c.type().equals(ORE))
-                .map(Chemical::qty)
-                .findFirst()
-                .orElse(0L);
-        return oreQty * multiply;
-    }
-
-    record Chemical(String type, long qty) {
+    record Chemical(String type, long required) {
 
         public static Chemical init(final String rawInput) {
             final String[] split = rawInput.trim().split(" ");
