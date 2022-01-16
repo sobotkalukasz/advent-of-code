@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /*
@@ -40,6 +42,32 @@ public class OxygenSystem {
         }
         //printMap(spaceMap);
         return oxygenPath;
+    }
+
+    public int fillWithOxygen() {
+        drawMapAndFindOxygen();
+
+        Set<Coordinate> oxygen = spaceMap.entrySet()
+                .stream()
+                .filter(e -> e.getValue().equals(Status.OXYGEN))
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
+
+        final Set<Coordinate> emptySpace = spaceMap.entrySet()
+                .stream()
+                .filter(e -> e.getValue().equals(Status.EMPTY) || e.getValue().equals(Status.START))
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
+
+        int countMinutes = 0;
+        while (!emptySpace.isEmpty()) {
+            oxygen = oxygen.stream().map(Coordinate::getAdjacent).flatMap(Set::stream).collect(Collectors.toSet());
+            oxygen.removeIf(o -> !emptySpace.contains(o));
+            emptySpace.removeAll(oxygen);
+            countMinutes++;
+        }
+
+        return countMinutes;
     }
 
     private int checkPath(final PriorityQueue<State> states, final State actualState, final Direction direction) {
@@ -152,6 +180,10 @@ public class OxygenSystem {
                 case SOUTH -> new Coordinate(row + 1, column);
                 case WEST -> new Coordinate(row, column - 1);
             };
+        }
+
+        public Set<Coordinate> getAdjacent() {
+            return Arrays.stream(Direction.values()).map(this::apply).collect(Collectors.toSet());
         }
     }
 }
