@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class OxygenSystemTest extends BaseTest {
 
     private static Stream<Arguments> testResourceFile() {
-        return Stream.of(Arguments.of("OxygenSystem", -1));
+        return Stream.of(Arguments.of("OxygenSystem", 424));
     }
 
     @ParameterizedTest
@@ -24,7 +24,7 @@ public class OxygenSystemTest extends BaseTest {
                 .toArray();
 
         final OxygenSystem oxygenSystem = new OxygenSystem(program);
-        int actual = oxygenSystem.findShortestPathToOxygen();
+        int actual = oxygenSystem.drawMapAndFindOxygen();
         assertEquals(expected, actual);
     }
 }

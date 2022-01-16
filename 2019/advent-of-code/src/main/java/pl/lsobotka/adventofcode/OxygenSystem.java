@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
-import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /*
  * https://adventofcode.com/2019/day/15
@@ -15,50 +15,47 @@ import java.util.stream.Collectors;
 public class OxygenSystem {
 
     final long[] program;
+    final Map<Coordinate, Status> spaceMap;
 
     public OxygenSystem(long[] program) {
         this.program = program;
+        this.spaceMap = new HashMap<>();
     }
 
-    public int findShortestPathToOxygen() {
-        final Map<Coordinate, Status> spaceMap = new HashMap<>();
-        spaceMap.put(Coordinate.start(), Status.START);
+    public int drawMapAndFindOxygen() {
+        this.spaceMap.put(Coordinate.start(), Status.START);
 
         final PriorityQueue<State> states = new PriorityQueue<>();
-        states.add(new State(Collections.emptyList()));
+        states.add(new State(Collections.emptyList(), Coordinate.start(), new IntCode(program)));
 
-        int pathLength = 0;
+        int oxygenPath = 0;
 
-        while (pathLength == 0 && !states.isEmpty()) {
+        while (!states.isEmpty()) {
             final State actualState = states.poll();
-            pathLength = Arrays.stream(Direction.values())
-                    .mapToInt(dir -> checkPath(spaceMap, states, actualState, dir))
-                    .filter(v -> v > 0)
-                    .min()
-                    .orElse(0);
-
-            //printMap(spaceMap);
+            final IntStream values = Arrays.stream(Direction.values())
+                    .mapToInt(dir -> checkPath(states, actualState, dir));
+            if (oxygenPath == 0) {
+                oxygenPath = values.filter(v -> v > 0).min().orElse(0);
+            }
         }
-
-        return pathLength;
+        //printMap(spaceMap);
+        return oxygenPath;
     }
 
-    private int checkPath(final Map<Coordinate, Status> spaceMap, final PriorityQueue<State> states,
-            final State actualState, final Direction direction) {
-        final ArrayList<Direction> path = new ArrayList<>(actualState.path);
-        path.add(direction);
-        final Coordinate actual = Coordinate.of(path);
+    private int checkPath(final PriorityQueue<State> states, final State actualState, final Direction direction) {
+        final Coordinate actual = actualState.actual().apply(direction);
 
-        if (!spaceMap.containsKey(actual)) {
-            final IntCode intCode = new IntCode(Arrays.copyOf(program, program.length));
-            path.forEach(d -> intCode.addInput(d.value));
-            final List<Long> output = intCode.executeUntilExpectedOutputSize(path.size());
-            final Status status = Status.getStatusByCode(output.get(output.size() - 1));
-            spaceMap.put(actual, status);
+        if (!this.spaceMap.containsKey(actual)) {
+            final IntCode intCode = actualState.intCode();
+            final Status status = applyMove(intCode, direction);
+            this.spaceMap.put(actual, status);
             if (status != Status.WALL) {
-                states.add(new State(path));
-            } else if (status == Status.OXYGEN) {
-                return path.size();
+                final List<Direction> path = actualState.path();
+                path.add(direction);
+                states.add(new State(path, actual, intCode));
+            }
+            if (status == Status.OXYGEN) {
+                return actualState.path.size() + 1;
             }
         }
         return 0;
@@ -68,10 +65,6 @@ public class OxygenSystem {
         intCode.addInput(direction.value);
         final List<Long> output = intCode.executeUntilOutput();
         return Status.getStatusByCode(output.get(0));
-    }
-
-    private boolean foundOxygen(final Map<Coordinate, Status> spaceMap) {
-        return spaceMap.values().contains(Status.OXYGEN);
     }
 
     private void printMap(final Map<Coordinate, Status> spaceMap) {
@@ -92,11 +85,21 @@ public class OxygenSystem {
         System.out.println(printout);
     }
 
-    private record State(List<Direction> path) implements Comparable<State> {
+    private record State(List<Direction> path, Coordinate actual, IntCode intCode) implements Comparable<State> {
 
         @Override
         public int compareTo(State other) {
             return Integer.compare(this.path.size(), other.path.size());
+        }
+
+        @Override
+        public List<Direction> path() {
+            return new ArrayList<>(path);
+        }
+
+        @Override
+        public IntCode intCode() {
+            return intCode.copy();
         }
     }
 
