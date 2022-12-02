@@ -18,9 +18,21 @@ class RockPaperScissorsTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("simpleFirstStarExample")
-    public void caloriesCountingTest(final List<String> input, final long expected) {
+    public void simpleFirstStarExampleTest(final List<String> input, final long expected) {
         final RockPaperScissors rockPaperScissors = new RockPaperScissors(input);
-        final long actual = rockPaperScissors.yourPoints();
+        final long actual = rockPaperScissors.pointsInRoundsByMove();
+        assertEquals(expected, actual);
+    }
+
+    private static Stream<Arguments> simpleSecondStarExample() {
+        return Stream.of(Arguments.of(Arrays.asList("A Y", "B X", "C Z"), 12));
+    }
+
+    @ParameterizedTest
+    @MethodSource("simpleSecondStarExample")
+    public void simpleSecondStarExampleTest(final List<String> input, final long expected) {
+        final RockPaperScissors rockPaperScissors = new RockPaperScissors(input);
+        final long actual = rockPaperScissors.pointsInRoundsByOutcome();
         assertEquals(expected, actual);
     }
 
@@ -30,10 +42,23 @@ class RockPaperScissorsTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("firstStarFile")
-    public void caloriesCountingTest(final String fileName, final long expected) throws Exception {
+    public void firstStarTest(final String fileName, final long expected) throws Exception {
         final List<String> input = getFileInput(fileName);
         final RockPaperScissors rockPaperScissors = new RockPaperScissors(input);
-        final long actual = rockPaperScissors.yourPoints();
+        final long actual = rockPaperScissors.pointsInRoundsByMove();
+        assertEquals(expected, actual);
+    }
+
+    private static Stream<Arguments> secondStarFile() {
+        return Stream.of(Arguments.of("RockPaperScissors", 10274));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStarFile")
+    public void secondStarTest(final String fileName, final long expected) throws Exception {
+        final List<String> input = getFileInput(fileName);
+        final RockPaperScissors rockPaperScissors = new RockPaperScissors(input);
+        final long actual = rockPaperScissors.pointsInRoundsByOutcome();
         assertEquals(expected, actual);
     }
 
