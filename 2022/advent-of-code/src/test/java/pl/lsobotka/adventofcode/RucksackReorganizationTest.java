@@ -25,6 +25,20 @@ class RucksackReorganizationTest extends BaseTest {
         assertEquals(expected, actual);
     }
 
+    private static Stream<Arguments> simpleSecondStarExample() {
+        return Stream.of(Arguments.of(
+                List.of("vJrwpWtwJgWrhcsFMMfFFhFp", "jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL", "PmmdzqPrVvPwwTWBwg",
+                        "wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn", "ttgJtRGJQctTZtZT", "CrZsJsPPZsGzwwsLwLmpwMDw"), 70));
+    }
+
+    @ParameterizedTest
+    @MethodSource("simpleSecondStarExample")
+    public void simpleSecondStarExampleTest(final List<String> input, final long expected) {
+        final RucksackReorganization reorganization = new RucksackReorganization(input);
+        long actual = reorganization.sumPriorityOfCommonItemsInGroupOfRucksacks();
+        assertEquals(expected, actual);
+    }
+
     private static Stream<Arguments> firstStarFile() {
         return Stream.of(Arguments.of("RucksackReorganization", 8109));
     }
@@ -37,5 +51,20 @@ class RucksackReorganizationTest extends BaseTest {
         long actual = reorganization.sumPriorityOfCommonItems();
         assertEquals(expected, actual);
     }
+
+    private static Stream<Arguments> secondStarFile() {
+        return Stream.of(Arguments.of("RucksackReorganization", 2738));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStarFile")
+    public void secondStarTest(final String fileName, final long expected) throws Exception {
+        final List<String> input = getFileInput(fileName);
+        final RucksackReorganization reorganization = new RucksackReorganization(input);
+        long actual = reorganization.sumPriorityOfCommonItemsInGroupOfRucksacks();
+        assertEquals(expected, actual);
+    }
+
+
 
 }
