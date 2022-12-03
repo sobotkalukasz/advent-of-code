@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
 /*
  * https://adventofcode.com/2022/day/2
  * */
@@ -46,100 +45,99 @@ public class RockPaperScissors {
         }).collect(Collectors.toList());
     }
 
-}
+    class Round {
+        private final Move elf;
+        private final Move you;
 
-class Round {
-    private final Move elf;
-    private final Move you;
+        private final int yourPoints;
 
-    private final int yourPoints;
-
-    public Round(Move elf, Move you) {
-        this.elf = elf;
-        this.you = you;
-        this.yourPoints = you.round(elf);
-    }
-
-    public int getYourPoints() {
-        return yourPoints;
-    }
-}
-
-enum Move {
-    ROCK("A", "X", 1), PAPER("B", "Y", 2), SCISSORS("C", "Z", 3);
-
-    private final String codA;
-    private final String codB;
-    private final int points;
-
-    Move(String codA, String codB, int points) {
-        this.codA = codA;
-        this.codB = codB;
-        this.points = points;
-    }
-
-    static Move of(final String rawVal) {
-        return Arrays.stream(Move.values())
-                .filter(m -> rawVal.equalsIgnoreCase(m.codA) || rawVal.equalsIgnoreCase(m.codB))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unknown move: " + rawVal));
-    }
-
-    static Move from(final Move other, final Outcome outcome) {
-        final Move moveForOutcome;
-        if (outcome.equals(Outcome.LOSE)) {
-            moveForOutcome = switch (other) {
-                case ROCK -> SCISSORS;
-                case PAPER -> ROCK;
-                case SCISSORS -> PAPER;
-            };
-        } else if (outcome.equals(Outcome.WIN)) {
-            moveForOutcome = switch (other) {
-                case ROCK -> PAPER;
-                case PAPER -> SCISSORS;
-                case SCISSORS -> ROCK;
-            };
-        } else {
-            moveForOutcome = other;
+        public Round(Move elf, Move you) {
+            this.elf = elf;
+            this.you = you;
+            this.yourPoints = you.round(elf);
         }
-        return moveForOutcome;
-    }
 
-    int round(final Move other) {
-        final Outcome outcome = roundOutcome(other);
-        return outcome.points + this.points;
-    }
-
-    private Outcome roundOutcome(final Move other) {
-        final Outcome outcome;
-        if (this.equals(other)) {
-            outcome = Outcome.DRAW;
-        } else {
-            outcome = switch (this) {
-                case ROCK -> other.equals(SCISSORS) ? Outcome.WIN : Outcome.LOSE;
-                case PAPER -> other.equals(ROCK) ? Outcome.WIN : Outcome.LOSE;
-                case SCISSORS -> other.equals(PAPER) ? Outcome.WIN : Outcome.LOSE;
-            };
+        public int getYourPoints() {
+            return yourPoints;
         }
-        return outcome;
-    }
-}
-
-enum Outcome {
-    WIN("Z", 6), LOSE("X", 0), DRAW("Y", 3);
-
-    final String code;
-    final int points;
-
-    Outcome(final String code, final int points) {
-        this.code = code;
-        this.points = points;
     }
 
-    static Outcome of(final String code) {
-        return Arrays.stream(Outcome.values())
-                .filter(v -> v.code.equalsIgnoreCase(code))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unknown outcome: " + code));
+    enum Move {
+        ROCK("A", "X", 1), PAPER("B", "Y", 2), SCISSORS("C", "Z", 3);
+
+        private final String codA;
+        private final String codB;
+        private final int points;
+
+        Move(String codA, String codB, int points) {
+            this.codA = codA;
+            this.codB = codB;
+            this.points = points;
+        }
+
+        static Move of(final String rawVal) {
+            return Arrays.stream(Move.values())
+                    .filter(m -> rawVal.equalsIgnoreCase(m.codA) || rawVal.equalsIgnoreCase(m.codB))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Unknown move: " + rawVal));
+        }
+
+        static Move from(final Move other, final Outcome outcome) {
+            final Move moveForOutcome;
+            if (outcome.equals(Outcome.LOSE)) {
+                moveForOutcome = switch (other) {
+                    case ROCK -> SCISSORS;
+                    case PAPER -> ROCK;
+                    case SCISSORS -> PAPER;
+                };
+            } else if (outcome.equals(Outcome.WIN)) {
+                moveForOutcome = switch (other) {
+                    case ROCK -> PAPER;
+                    case PAPER -> SCISSORS;
+                    case SCISSORS -> ROCK;
+                };
+            } else {
+                moveForOutcome = other;
+            }
+            return moveForOutcome;
+        }
+
+        int round(final Move other) {
+            final Outcome outcome = roundOutcome(other);
+            return outcome.points + this.points;
+        }
+
+        private Outcome roundOutcome(final Move other) {
+            final Outcome outcome;
+            if (this.equals(other)) {
+                outcome = Outcome.DRAW;
+            } else {
+                outcome = switch (this) {
+                    case ROCK -> other.equals(SCISSORS) ? Outcome.WIN : Outcome.LOSE;
+                    case PAPER -> other.equals(ROCK) ? Outcome.WIN : Outcome.LOSE;
+                    case SCISSORS -> other.equals(PAPER) ? Outcome.WIN : Outcome.LOSE;
+                };
+            }
+            return outcome;
+        }
+    }
+
+    enum Outcome {
+        WIN("Z", 6), LOSE("X", 0), DRAW("Y", 3);
+
+        final String code;
+        final int points;
+
+        Outcome(final String code, final int points) {
+            this.code = code;
+            this.points = points;
+        }
+
+        static Outcome of(final String code) {
+            return Arrays.stream(Outcome.values())
+                    .filter(v -> v.code.equalsIgnoreCase(code))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Unknown outcome: " + code));
+        }
     }
 }
