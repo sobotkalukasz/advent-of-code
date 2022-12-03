@@ -5,6 +5,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
+/*
+ * https://adventofcode.com/2022/day/2
+ * */
 public class RockPaperScissors {
 
     private final List<String> input;
