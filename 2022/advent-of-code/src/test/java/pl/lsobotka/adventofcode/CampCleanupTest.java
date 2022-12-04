@@ -23,6 +23,18 @@ class CampCleanupTest extends BaseTest {
         assertEquals(expected, actual);
     }
 
+    private static Stream<Arguments> simpleSecondStarExample() {
+        return Stream.of(Arguments.of(List.of("2-4,6-8", "2-3,4-5", "5-7,7-9", "2-8,3-7", "6-6,4-6", "2-6,4-8"), 4));
+    }
+
+    @ParameterizedTest
+    @MethodSource("simpleSecondStarExample")
+    public void simpleSecondStarExampleTest(final List<String> input, final long expected) {
+        final CampCleanup campCleanup = new CampCleanup(input);
+        final long actual = campCleanup.countOverlapOther();
+        assertEquals(expected, actual);
+    }
+
     private static Stream<Arguments> firstStarFile() {
         return Stream.of(Arguments.of("CampCleanup", 562));
     }
@@ -33,6 +45,19 @@ class CampCleanupTest extends BaseTest {
         final List<String> input = getFileInput(fileName);
         final CampCleanup campCleanup = new CampCleanup(input);
         final long actual = campCleanup.countContainOther();
+        assertEquals(expected, actual);
+    }
+
+    private static Stream<Arguments> secondStarFile() {
+        return Stream.of(Arguments.of("CampCleanup", 924));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStarFile")
+    public void secondStarTest(final String fileName, final long expected) throws Exception {
+        final List<String> input = getFileInput(fileName);
+        final CampCleanup campCleanup = new CampCleanup(input);
+        final long actual = campCleanup.countOverlapOther();
         assertEquals(expected, actual);
     }
 }

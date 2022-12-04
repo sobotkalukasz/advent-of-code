@@ -18,15 +18,11 @@ public class CampCleanup {
         return input.stream().map(CleaningPair::of).filter(CleaningPair::containsOther).count();
     }
 
-    static class CleaningPair {
+    long countOverlapOther() {
+        return input.stream().map(CleaningPair::of).filter(CleaningPair::overlapsOther).count();
+    }
 
-        private final CleaningElf firstElf;
-        private final CleaningElf secondElf;
-
-        CleaningPair(CleaningElf firstElf, CleaningElf secondElf) {
-            this.firstElf = firstElf;
-            this.secondElf = secondElf;
-        }
+    record CleaningPair(CleaningElf firstElf, CleaningElf secondElf) {
 
         static CleaningPair of(final String raw) {
             final String[] pairs = raw.split(",");
@@ -35,6 +31,10 @@ public class CampCleanup {
 
         boolean containsOther() {
             return firstElf.contains(secondElf) || secondElf.contains(firstElf);
+        }
+
+        boolean overlapsOther() {
+            return firstElf.overlaps(secondElf) || secondElf.overlaps(firstElf);
         }
     }
 
@@ -45,10 +45,13 @@ public class CampCleanup {
         }
 
         boolean contains(final CleaningElf other) {
-            final List<Integer> collect = IntStream.range(this.from, this.to + 1)
-                    .boxed()
-                    .toList();
+            final List<Integer> collect = IntStream.range(this.from, this.to + 1).boxed().toList();
             return IntStream.range(other.from, other.to + 1).allMatch(collect::contains);
+        }
+
+        boolean overlaps(final CleaningElf other) {
+            final List<Integer> collect = IntStream.range(this.from, this.to + 1).boxed().toList();
+            return IntStream.range(other.from, other.to + 1).anyMatch(collect::contains);
         }
     }
 }
