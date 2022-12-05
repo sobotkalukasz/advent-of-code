@@ -28,7 +28,28 @@ class SupplyStacksTest extends BaseTest {
     @MethodSource("simpleFirstStarExample")
     public void simpleFirstStarExampleTest(final List<String> input, final String expected) {
         final SupplyStacks supplyStacks = new SupplyStacks(input);
-        final String actual = supplyStacks.applyOperationsAndGetFirstCargos();
+        final String actual = supplyStacks.applySingleOperations();
+        assertEquals(expected, actual);
+    }
+
+    private static Stream<Arguments> simpleSecondStarExample() {
+        return Stream.of(Arguments.of(List.of( //
+                "    [D]    ", //
+                "[N] [C]    ", //
+                "[Z] [M] [P]", //
+                " 1   2   3 ", //
+                "", //
+                "move 1 from 2 to 1", //
+                "move 3 from 1 to 3", //
+                "move 2 from 2 to 1", //
+                "move 1 from 1 to 2"), "MCD"));
+    }
+
+    @ParameterizedTest
+    @MethodSource("simpleSecondStarExample")
+    public void simpleSecondStarExampleTest(final List<String> input, final String expected) {
+        final SupplyStacks supplyStacks = new SupplyStacks(input);
+        final String actual = supplyStacks.applyBulkOperations();
         assertEquals(expected, actual);
     }
 
@@ -41,7 +62,20 @@ class SupplyStacksTest extends BaseTest {
     public void firstStarTest(final String fileName, final String expected) throws Exception {
         final List<String> input = getFileInput(fileName);
         final SupplyStacks supplyStacks = new SupplyStacks(input);
-        final String actual = supplyStacks.applyOperationsAndGetFirstCargos();
+        final String actual = supplyStacks.applySingleOperations();
+        assertEquals(expected, actual);
+    }
+
+    private static Stream<Arguments> secondStarFile() {
+        return Stream.of(Arguments.of("SupplyStacks", "VRZGHDFBQ"));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStarFile")
+    public void secondStarTest(final String fileName, final String expected) throws Exception {
+        final List<String> input = getFileInput(fileName);
+        final SupplyStacks supplyStacks = new SupplyStacks(input);
+        final String actual = supplyStacks.applyBulkOperations();
         assertEquals(expected, actual);
     }
 

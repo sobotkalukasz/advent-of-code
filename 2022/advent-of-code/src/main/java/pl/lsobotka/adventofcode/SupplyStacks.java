@@ -1,6 +1,7 @@
 package pl.lsobotka.adventofcode;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeMap;
@@ -61,7 +62,7 @@ public class SupplyStacks {
         throw new IllegalArgumentException("Not able to determine operation start index");
     }
 
-    public String applyOperationsAndGetFirstCargos() {
+    String applySingleOperations() {
         operations.forEach(op -> {
             for (int i = 0; i < op.move; i++) {
                 final String cargo = stacks.get(op.from).pool();
@@ -69,17 +70,23 @@ public class SupplyStacks {
             }
         });
         return stacks.values().stream().map(Stack::getFirst).collect(Collectors.joining());
-
     }
 
-    static class Stack {
-        private final int id;
-        private final LinkedList<String> cargos;
+    String applyBulkOperations() {
+        operations.forEach(op -> {
+            final LinkedList<String> tmp = new LinkedList<>();
+            for (int i = 0; i < op.move; i++) {
+                tmp.add(stacks.get(op.from).pool());
+            }
+            final Iterator<String> iter = tmp.descendingIterator();
+            while (iter.hasNext()) {
+                stacks.get(op.to).put(iter.next());
+            }
+        });
+        return stacks.values().stream().map(Stack::getFirst).collect(Collectors.joining());
+    }
 
-        private Stack(final int id, final LinkedList<String> cargos) {
-            this.id = id;
-            this.cargos = cargos;
-        }
+    record Stack(int id, LinkedList<String> cargos) {
 
         static Stack from(final List<String> input, final int idRow, final int column) {
 
@@ -113,16 +120,7 @@ public class SupplyStacks {
         }
     }
 
-    static class Operation {
-        final int move;
-        final int from;
-        final int to;
-
-        private Operation(final int move, final int from, final int to) {
-            this.move = move;
-            this.from = from;
-            this.to = to;
-        }
+    record Operation(int move, int from, int to) {
 
         static Operation from(final String raw) {
             final String[] split = raw.split("\\s+");
