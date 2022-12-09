@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -17,33 +18,82 @@ public class RopeBridge {
         operations = input.stream().map(Operation::from).flatMap(Collection::stream).collect(Collectors.toList());
     }
 
-    int countUniqueTailPositions() {
+    int countUniqueTailPositionsOf(final int ropeSize) {
         final Set<Coord> visitedByTail = new HashSet<>();
-        Coord head = Coord.of(0, 0);
-        Coord tail = Coord.of(0, 0);
+        final Knot rope = Knot.ropeOfSize(ropeSize);
 
         for (Operation op : operations) {
-            head = op.move.apply(head);
-            tail = tail.moveAdjacentTo(head);
-            visitedByTail.add(tail);
+            rope.applyOperation(op);
+            visitedByTail.add(rope.getTailPosition());
         }
 
         return visitedByTail.size();
     }
 
-    record Coord(int row, int column) {
+    private static class Knot {
+        Coord coord;
+        String name;
+        Knot parent;
+        Knot child;
+
+        private Knot(final String name, final Knot parent) {
+            this.coord = Coord.of(0, 0);
+            this.name = name;
+            this.parent = parent;
+            if (Objects.nonNull(parent)) {
+                parent.child = this;
+            }
+        }
+
+        Coord getTailPosition() {
+            if (isTail()) {
+                return coord;
+            } else {
+                return child.getTailPosition();
+            }
+        }
+
+        void applyOperation(final Operation op) {
+            if (isHead()) {
+                coord = op.move.apply(coord);
+                adjust();
+            }
+        }
+
+        private void adjust() {
+            if (!isHead()) {
+                coord = coord.moveAdjacentTo(parent.coord);
+            }
+            if (!isTail()) {
+                child.adjust();
+            }
+        }
+
+        private boolean isHead() {
+            return Objects.isNull(parent);
+        }
+
+        private boolean isTail() {
+            return Objects.isNull(child);
+        }
+
+        static Knot ropeOfSize(int size) {
+            final Knot head = new Knot("H", null);
+
+            Knot actual = head;
+            for (int i = 1; i < size - 1; i++) {
+                actual = new Knot(String.valueOf(i), actual);
+            }
+            new Knot("T", actual);
+
+            return head;
+        }
+    }
+
+    private record Coord(int row, int column) {
 
         static Coord of(final int row, final int column) {
             return new Coord(row, column);
-        }
-
-        boolean isAdjacent(final Coord other) {
-            final int rowLen = Math.abs(this.row - other.row);
-            final int colLen = Math.abs(this.column - other.column);
-
-            //System.out.println(this + " is adjacent to: " + other + ". " + (rowLen <= 1 && colLen <= 1));
-
-            return rowLen <= 1 && colLen <= 1;
         }
 
         Coord moveAdjacentTo(final Coord other) {
@@ -53,8 +103,13 @@ public class RopeBridge {
                 newPos = adjustRow(newPos, other);
                 newPos = adjustColumn(newPos, other);
             }
-            //System.out.println(String.format("This:   %s\nother:  %s\nnewPos: %s\n\n", this, other, newPos));
             return newPos;
+        }
+
+        private boolean isAdjacent(final Coord other) {
+            final int rowLen = Math.abs(this.row - other.row);
+            final int colLen = Math.abs(this.column - other.column);
+            return rowLen <= 1 && colLen <= 1;
         }
 
         private Coord adjustRow(final Coord coord, final Coord other) {
@@ -82,22 +137,18 @@ public class RopeBridge {
         }
 
         private Coord down() {
-            //System.out.println("DOWN");
             return Coord.of(row + 1, column);
         }
 
         private Coord up() {
-            //System.out.println("UP");
             return Coord.of(row - 1, column);
         }
 
         private Coord right() {
-            //System.out.println("RIGHT");
             return Coord.of(row, column + 1);
         }
 
         private Coord left() {
-            //System.out.println("LEFT");
             return Coord.of(row, column - 1);
         }
     }
@@ -108,7 +159,7 @@ public class RopeBridge {
         final String value;
         final Function<Coord, Coord> move;
 
-        Operation(String value, Function<Coord, Coord> move) {
+        Operation(final String value, final Function<Coord, Coord> move) {
             this.value = value;
             this.move = move;
         }

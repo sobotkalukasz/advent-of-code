@@ -11,17 +11,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class RopeBridgeTest extends BaseTest {
 
-    private static Stream<Arguments> firstStar() {
-        return Stream.of(Arguments.of("RopeBridge_simple", 13), //
-                Arguments.of("RopeBridge", 6354));
+    private static Stream<Arguments> cases() {
+        return Stream.of(Arguments.of("RopeBridge_simple", 0, 13), //
+                Arguments.of("RopeBridge_simple_2", 10, 36), //
+                Arguments.of("RopeBridge", 0, 6354), //
+                Arguments.of("RopeBridge", 10, 2651)); //
     }
 
     @ParameterizedTest
-    @MethodSource("firstStar")
-    public void firstStarTest(final String fileName, final int expected) throws Exception {
+    @MethodSource("cases")
+    public void caseTest(final String fileName, final int ropeSize, final int expected) throws Exception {
         final List<String> input = getFileInput(fileName);
         final RopeBridge ropeBridge = new RopeBridge(input);
-        final int actual = ropeBridge.countUniqueTailPositions();
+        final int actual = ropeBridge.countUniqueTailPositionsOf(ropeSize);
         assertEquals(expected, actual);
     }
 }
