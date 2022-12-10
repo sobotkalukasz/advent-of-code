@@ -10,6 +10,9 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/*
+ * https://adventofcode.com/2022/day/9
+ * */
 public class RopeBridge {
 
     final List<Operation> operations;

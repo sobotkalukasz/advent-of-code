@@ -3,6 +3,9 @@ package pl.lsobotka.adventofcode.nospaceleft;
 import java.util.List;
 import java.util.Map;
 
+/*
+ * https://adventofcode.com/2022/day/7
+ * */
 public class NoSpaceLeft {
 
     private final FileSystem fileSystem;
