@@ -3,6 +3,9 @@ package pl.lsobotka.adventofcode;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/*
+ * https://adventofcode.com/2022/day/12
+ * */
 public class HillClimbing {
 
     final Map<Coord, Point> hillMap;

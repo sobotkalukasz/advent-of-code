@@ -9,7 +9,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class HillClimbingTest extends BaseTest{
+public class HillClimbingTest extends BaseTest {
 
     private static Stream<Arguments> firstStar() {
         return Stream.of(Arguments.of("HillClimbing_simple", 31), //

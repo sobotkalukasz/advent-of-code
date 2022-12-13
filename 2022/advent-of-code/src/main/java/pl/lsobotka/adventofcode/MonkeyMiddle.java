@@ -11,6 +11,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/*
+ * https://adventofcode.com/2022/day/11
+ * */
 public class MonkeyMiddle {
 
     final TreeMap<Integer, Monkey> monkeys;
