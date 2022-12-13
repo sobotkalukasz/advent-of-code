@@ -3,144 +3,127 @@ package pl.lsobotka.adventofcode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static pl.lsobotka.adventofcode.DistressSignal.Result.EQUAL;
-import static pl.lsobotka.adventofcode.DistressSignal.Result.RIGHT_ORDER;
-import static pl.lsobotka.adventofcode.DistressSignal.Result.WRONG_ORDER;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /*
  * https://adventofcode.com/2022/day/13
  * */
 public class DistressSignal {
 
-    final List<Pair> pairs;
+    final List<String> input;
 
     public DistressSignal(List<String> input) {
-        final PairFactory factory = new PairFactory();
-        this.pairs = factory.initPairs(input);
+        this.input = input;
     }
 
     int determineSumOfRightOrderPairs() {
-        return pairs.stream().filter(Pair::isRightOrder).mapToInt(Pair::getId).sum();
+        final List<Pair> pairs = ElementFactory.initPairs(input);
+        return pairs.stream().filter(Pair::isRightOrder).mapToInt(Pair::id).sum();
     }
 
-    static class Pair {
-        final int id;
-        final Complex left;
-        final Complex right;
+    int determineDecoderKey() {
+        final List<String> dividers = List.of("[[2]]", "[[6]]");
+        final List<String> rawData = Stream.concat(input.stream(), dividers.stream()).toList();
+        final List<Row> rows = ElementFactory.initSortedRows(rawData);
 
-        final boolean rightOrder;
-
-        public Pair(final int id, final Complex left, final Complex right) {
-            this.id = id;
-            this.left = left;
-            this.right = right;
-            final Result compareOrder = left.compareOrder(right);
-            this.rightOrder = compareOrder.equals(RIGHT_ORDER);
+        int decodedKey = 1;
+        for (int i = 0; i < rows.size(); i++) {
+            if (dividers.contains(rows.get(i).raw)) {
+                decodedKey *= i + 1;
+            }
         }
 
-        public int getId() {
-            return id;
-        }
+        return decodedKey;
+    }
+
+    record Pair(int id, Complex left, Complex right) {
 
         public boolean isRightOrder() {
-            return rightOrder;
+            return left.compareTo(right) < 0;
         }
     }
 
-    interface Element {
+    record Row(Element element, String raw) implements Comparable<Row> {
 
-        Result compareOrder(Element other);
+        @Override
+        public int compareTo(final Row o) {
+            return this.element.compareTo(o.element);
+        }
+    }
 
-        Result accept(OrderVisitor v);
+    interface Element extends Comparable<Element> {
+
+        int accept(OrderVisitor v);
 
         interface OrderVisitor {
-            Result visit(Simple element);
+            int visit(Simple element);
 
-            Result visit(Complex element);
+            int visit(Complex element);
         }
 
     }
 
-    static class Simple implements Element {
-
-        final int val;
-
-        Simple(final int val) {
-            this.val = val;
-        }
+    record Simple(int val) implements Element {
 
         @Override
-        public Result compareOrder(final Element other) {
-            return other.accept(new OrderVisitor() {
-                @Override
-                public Result visit(Simple element) {
-                    if (Simple.this.val < element.val) {
-                        return RIGHT_ORDER;
-                    } else if (Simple.this.val == element.val) {
-                        return EQUAL;
-                    } else {
-                        return WRONG_ORDER;
-                    }
-                }
-
-                @Override
-                public Result visit(Complex element) {
-                    final Complex thisComplex = new Complex(Simple.this);
-                    return thisComplex.compareOrder(element);
-                }
-            });
-        }
-
-        @Override
-        public Result accept(OrderVisitor v) {
+        public int accept(OrderVisitor v) {
             return v.visit(this);
         }
 
-    }
-
-    enum Result{
-        RIGHT_ORDER, EQUAL, WRONG_ORDER;
-    }
-
-    static class Complex implements Element {
-        final List<Element> elements;
-
-        Complex(final List<Element> elements) {
-            this.elements = elements;
-        }
-
-        Complex(final Simple simple) {
-            this.elements = List.of(simple);
-        }
-
         @Override
-        public Result compareOrder(Element other) {
-            return other.accept(new OrderVisitor() {
+        public int compareTo(Element o) {
+            return o.accept(new OrderVisitor() {
                 @Override
-                public Result visit(Simple element) {
-                    final Complex other = new Complex(element);
-                    return Complex.this.compareOrder(other);
+                public int visit(Simple element) {
+                    return Integer.compare(Simple.this.val, element.val);
                 }
 
                 @Override
-                public Result visit(Complex element) {
+                public int visit(Complex element) {
+                    final Complex thisComplex = Complex.from(Simple.this);
+                    return thisComplex.compareTo(element);
+                }
+            });
+        }
+    }
+
+    record Complex(List<Element> elements) implements Element {
+
+        static Complex from(final Simple simple) {
+            return new Complex(List.of(simple));
+        }
+
+        @Override
+        public int accept(OrderVisitor v) {
+            return v.visit(this);
+        }
+
+        @Override
+        public int compareTo(Element o) {
+            return o.accept(new OrderVisitor() {
+                @Override
+                public int visit(Simple element) {
+                    final Complex other = Complex.from(element);
+                    return Complex.this.compareTo(other);
+                }
+
+                @Override
+                public int visit(Complex element) {
                     final List<Element> other = element.elements;
 
-                    Result order = EQUAL;
-                    if (elements.isEmpty()) {
-                        if(!other.isEmpty()){
-                            order = RIGHT_ORDER;
-                        }
+                    int order = 0;
+                    if (elements.isEmpty() && !other.isEmpty()) {
+                        order = -1;
                     } else {
-                        for (int i = 0; i < elements.size() && order.equals(EQUAL); i++) {
+                        for (int i = 0; i < elements.size() && order == 0; i++) {
                             if (i < other.size()) {
-                                order = elements.get(i).compareOrder(other.get(i));
+                                order = elements.get(i).compareTo(other.get(i));
                             } else {
-                                order = WRONG_ORDER;
+                                order = 1;
                             }
-                            if (order.equals(EQUAL) && i == elements.size() - 1 && elements.size() < other.size()) {
-                                order = RIGHT_ORDER;
+                            if (order == 0 && i == elements.size() - 1 && elements.size() < other.size()) {
+                                order = -1;
                             }
                         }
                     }
@@ -148,21 +131,15 @@ public class DistressSignal {
                 }
             });
         }
-
-        @Override
-        public Result accept(OrderVisitor v) {
-            return v.visit(this);
-        }
-
     }
 
-    protected static class PairFactory {
+    protected static class ElementFactory {
 
-        List<Pair> initPairs(final List<String> rowPairs) {
+        static List<Pair> initPairs(final List<String> input) {
             final List<Pair> pairs = new ArrayList<>();
             final List<String> temp = new ArrayList<>();
             final AtomicInteger pairId = new AtomicInteger();
-            rowPairs.forEach(row -> {
+            input.forEach(row -> {
                 if (!row.isEmpty()) {
                     temp.add(row);
                     if (temp.size() == 2) {
@@ -174,29 +151,37 @@ public class DistressSignal {
             return pairs;
         }
 
-        private Pair from(final List<String> rawPair, final int id) {
+        static List<Row> initSortedRows(final List<String> input) {
+            return input.stream()
+                    .filter(row -> !row.isEmpty())
+                    .map(row -> new Row(from(row.substring(1)), row))
+                    .sorted()
+                    .collect(Collectors.toList());
+        }
+
+        static private Pair from(final List<String> rawPair, final int id) {
             final String first = rawPair.get(0);
-            final Complex left = from(first.substring(1, first.length()));
+            final Complex left = from(first.substring(1));
 
             final String second = rawPair.get(1);
-            final Complex right = from(second.substring(1, second.length()));
+            final Complex right = from(second.substring(1));
             return new Pair(id, left, right);
         }
 
-        private Complex from(final String raw) {
+        static private Complex from(final String raw) {
             final List<Element> elements = new ArrayList<>();
             for (int i = 0; i < raw.length(); i++) {
                 final char current = raw.charAt(i);
                 if (current == '[') {
-                    final int closeIndex = determineCloseIndex(raw, i + 1);
+                    final int closeIndex = determineClosingIndex(raw, i + 1);
                     elements.add(from(raw.substring(i + 1, closeIndex)));
                     i = closeIndex;
                 } else if (Character.isDigit(current)) {
                     if (i == raw.length() - 1) {
-                        elements.add(new Simple(Integer.valueOf(raw.substring(i, raw.length()))));
+                        elements.add(new Simple(Integer.parseInt(raw.substring(i))));
                     } else {
-                        final int valueEnd = determineValueEndIndex(raw, i + 1);
-                        elements.add(new Simple(Integer.valueOf(raw.substring(i, valueEnd))));
+                        final int valueEnd = determineValueEndingIndex(raw, i + 1);
+                        elements.add(new Simple(Integer.parseInt(raw.substring(i, valueEnd))));
                         i = valueEnd - 1;
                     }
                 }
@@ -204,7 +189,7 @@ public class DistressSignal {
             return new Complex(elements);
         }
 
-        protected int determineCloseIndex(final String raw, final int from) {
+        static protected int determineClosingIndex(final String raw, final int from) {
             int open = 0;
             int closeIndex = 0;
             for (int i = from; i < raw.length(); i++) {
@@ -223,7 +208,7 @@ public class DistressSignal {
             return closeIndex;
         }
 
-        private int determineValueEndIndex(final String raw, final int from) {
+        static private int determineValueEndingIndex(final String raw, final int from) {
             int endIndex = 0;
             for (int i = from; i < raw.length(); i++) {
                 final char current = raw.charAt(i);

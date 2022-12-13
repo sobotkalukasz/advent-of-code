@@ -20,14 +20,13 @@ public class DistressSignalTest extends BaseTest {
     @ParameterizedTest
     @MethodSource("closeIndex")
     public void closeIndexTest(final String testString, final int from, final int expected) {
-        final PairFactory factory = new PairFactory();
-        final int actual = factory.determineCloseIndex(testString, from);
+        final int actual = ElementFactory.determineClosingIndex(testString, from);
         assertEquals(expected, actual);
     }
 
     private static Stream<Arguments> firstStar() {
         return Stream.of(Arguments.of("DistressSignal_simple", 13), //
-                Arguments.of("DistressSignal", 5503));
+                Arguments.of("DistressSignal", 5_503));
     }
 
     @ParameterizedTest
@@ -36,6 +35,20 @@ public class DistressSignalTest extends BaseTest {
         final List<String> input = getFileInput(fileName);
         final DistressSignal signal = new DistressSignal(input);
         final int actual = signal.determineSumOfRightOrderPairs();
+        assertEquals(expected, actual);
+    }
+
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("DistressSignal_simple", 140), //
+                Arguments.of("DistressSignal", 20_952));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    public void secondStarTest(final String fileName, final int expected) throws Exception {
+        final List<String> input = getFileInput(fileName);
+        final DistressSignal signal = new DistressSignal(input);
+        final int actual = signal.determineDecoderKey();
         assertEquals(expected, actual);
     }
 }
