@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /*
- * https://adventofcode.com/2022/day/13
+ * https://adventofcode.com/2022/day/14
  * */
 public class RegolithReservoir {
 
