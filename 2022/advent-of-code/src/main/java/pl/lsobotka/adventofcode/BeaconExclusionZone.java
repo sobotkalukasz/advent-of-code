@@ -1,5 +1,6 @@
 package pl.lsobotka.adventofcode;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -8,7 +9,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /*
- * https://adventofcode.com/2022/day/14
+ * https://adventofcode.com/2022/day/15
  * */
 public class BeaconExclusionZone {
 
@@ -18,7 +19,7 @@ public class BeaconExclusionZone {
         this.sensors = input.stream().map(Sensor::from).collect(Collectors.toList());
     }
 
-    long countEmptyFor(final int rowToCheck) {
+    long countEmptyFor(final long rowToCheck) {
         final Map<Coord, Type> caveMap = new HashMap<>();
 
         sensors.forEach(s -> {
@@ -26,27 +27,51 @@ public class BeaconExclusionZone {
             caveMap.put(s.beacon, Type.BEACON);
         });
 
-        sensors.forEach(s -> {
-            final int minus = s.sensor.row - s.distance;
-            final int plus = s.sensor.row + s.distance;
-
-            final boolean inRange = Math.min(minus, plus) <= rowToCheck && rowToCheck <= Math.max(minus, plus);
-            if (inRange) {
-                final Set<Coord> allInRange = s.sensor.getAllInRange(s.distance, rowToCheck);
-                allInRange.forEach(c -> caveMap.putIfAbsent(c, Type.EMPTY));
-            }
-
-        });
+        sensors.stream()
+                .filter(s -> s.isInRange(rowToCheck))
+                .map(s -> s.sensor.getInRangeForRow(s.distance, rowToCheck))
+                .flatMap(Collection::stream)
+                .forEach(c -> caveMap.putIfAbsent(c, Type.EMPTY));
 
         return caveMap.entrySet()
                 .stream()
-                .filter(e -> e.getKey().row == rowToCheck)
-                .map(Map.Entry::getValue)
-                .filter(Type.EMPTY::equals)
+                .filter(e -> e.getKey().row == rowToCheck && e.getValue().equals(Type.EMPTY))
                 .count();
     }
 
-    private record Sensor(Coord sensor, Coord beacon, int distance) {
+    long findTuningFrequency(final long max) {
+
+        long frequency = 0;
+        for (long r = 0; r <= max; r++) {
+            for (long c = 0; c <= max; c++) {
+                final Coord current = Coord.of(r, c);
+                final Sensor sensor = getSensorWithBiggestDistance(current);
+
+                if (sensor == null) {
+                    frequency = c * 4_000_000 + r;
+                    break;
+                }
+
+                c = sensor.sensor.getMaxInRangeForRow(sensor.distance, r).col;
+            }
+        }
+
+        return frequency;
+    }
+
+    private Sensor getSensorWithBiggestDistance(final Coord coord) {
+        Sensor sensor = null;
+        for (Sensor s : sensors) {
+            if (s.sensor.distanceTo(coord) <= s.distance) {
+                if (sensor == null || sensor.distance < s.distance) {
+                    sensor = s;
+                }
+            }
+        }
+        return sensor;
+    }
+
+    private record Sensor(Coord sensor, Coord beacon, long distance) {
 
         static Sensor from(final String data) {
             String edit = data.replaceAll("Sensor at", "");
@@ -59,11 +84,18 @@ public class BeaconExclusionZone {
 
             return new Sensor(sensor, beacon, sensor.distanceTo(beacon));
         }
+
+        private boolean isInRange(long row) {
+            final long minus = sensor.row - distance;
+            final long plus = sensor.row + distance;
+
+            return Math.min(minus, plus) <= row && row <= Math.max(minus, plus);
+        }
     }
 
-    private record Coord(int row, int col) {
+    private record Coord(long row, long col) {
 
-        static Coord of(final int row, final int col) {
+        static Coord of(final long row, final long col) {
             return new Coord(row, col);
         }
 
@@ -75,10 +107,10 @@ public class BeaconExclusionZone {
             return Coord.of(row, col);
         }
 
-        Set<Coord> getAllInRange(final int distance, final int forRow) {
+        Set<Coord> getInRangeForRow(final long distance, final long forRow) {
             final Set<Coord> inRange = new HashSet<>();
-            final int diff = distance - Math.abs(forRow - this.row);
-            for (int c = 0; c <= diff; c++) {
+            final long diff = distance - Math.abs(forRow - this.row);
+            for (long c = 0; c <= diff; c++) {
                 inRange.add(Coord.of(forRow, this.col - c));
                 inRange.add(Coord.of(forRow, this.col + c));
             }
@@ -86,7 +118,12 @@ public class BeaconExclusionZone {
             return inRange;
         }
 
-        private int distanceTo(final Coord other) {
+        Coord getMaxInRangeForRow(final long distance, final long forRow) {
+            final long diff = distance - Math.abs(forRow - this.row);
+            return Coord.of(forRow, this.col + diff);
+        }
+
+        long distanceTo(final Coord other) {
             return Math.abs(this.row - other.row) + Math.abs(this.col - other.col);
         }
     }
