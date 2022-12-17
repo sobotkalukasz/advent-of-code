@@ -25,4 +25,18 @@ class ProboscideaVolcaniumTest extends BaseTest {
         assertEquals(expected, actual);
     }
 
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("ProboscideaVolcanium_simple", 1707), //
+                Arguments.of("ProboscideaVolcanium", 2469));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    public void secondStarTest(final String fileName, final long expected) throws Exception {
+        final List<String> input = getFileInput(fileName);
+        final ProboscideaVolcanium volcanium = new ProboscideaVolcanium(input);
+        final int actual = volcanium.determineFlowRateWithHelp();
+        assertEquals(expected, actual);
+    }
+
 }

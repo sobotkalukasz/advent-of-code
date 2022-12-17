@@ -53,6 +53,116 @@ public class ProboscideaVolcanium {
         return flowRate.intValue();
     }
 
+    /*
+    * A suboptimal solution - it takes around 3 minutes to determine right answer
+    * */
+    public int determineFlowRateWithHelp() {
+        final int time = 26;
+
+        final Queue<ValveOpenPathWithHelp> paths = new PriorityQueue<>();
+        ValveOpenPathWithHelp bestPath = new ValveOpenPathWithHelp(start, 0, start, 0, time, 0, new ArrayList<>(workingValves));
+        paths.add(bestPath);
+
+        while (!paths.isEmpty()) {
+            final ValveOpenPathWithHelp path = paths.poll();
+
+            if (path.currentMoveLeft == path.elephantMoveLeft) {
+                for (String me : path.toOpen) {
+                    for (String elephant : path.toOpen) {
+                        if (me.equals(elephant)) {
+                            continue;
+                        }
+
+                        final int movesMe = shortestPaths.get(path.current).get(me);
+                        final int movesElephant = shortestPaths.get(path.elephant).get(elephant);
+
+                        final int timeLeft = path.timeLeft - 1 - path.currentMoveLeft;
+
+                        final int oldRate = path.rate;
+                        final int rateOpenNextValve = (timeLeft - movesMe) * valves.get(me).rate;
+                        final int rateOpenNextElephantValve = (timeLeft - movesElephant) * valves.get(elephant).rate;
+                        final int newRate = oldRate + rateOpenNextValve + rateOpenNextElephantValve;
+
+                        final List<String> toOpen = new ArrayList<>(path.toOpen);
+                        toOpen.remove(me);
+                        toOpen.remove(elephant);
+
+                        final int moveTime = Math.min(movesMe, movesElephant);
+
+                        if (timeLeft - moveTime >= 0 && !(timeLeft - moveTime <= 13 && newRate < bestPath.rate()/2)) {
+                            final ValveOpenPathWithHelp nextPath = new ValveOpenPathWithHelp(me, movesMe - moveTime,
+                                    elephant, movesElephant - moveTime, timeLeft - moveTime, newRate, toOpen);
+                            if(timeLeft - moveTime == 0){
+                                if (bestPath.rate < path.rate) {
+                                    bestPath = path;
+                                }
+                            } else {
+                                bestPath = bestPath.rate > nextPath.rate ? bestPath : nextPath;
+                                paths.add(nextPath);
+                            }
+                        }
+                    }
+                }
+
+            } else if (path.currentMoveLeft < path.elephantMoveLeft) {
+                for (String me : path.toOpen) {
+                    final int nextMove = shortestPaths.get(path.current).get(me);
+                    final int nextElephantMove = path.elephantMoveLeft - path.currentMoveLeft - 1;
+
+                    final int timeLeft = path.timeLeft - 1 - path.currentMoveLeft;
+                    final int newRate = path.rate + (timeLeft - nextMove) * valves.get(me).rate;
+
+                    final List<String> toOpen = new ArrayList<>(path.toOpen);
+                    toOpen.remove(me);
+
+                    final int moveTime = Math.min(nextMove, nextElephantMove);
+
+                    if (timeLeft - moveTime >= 0 && !(timeLeft - moveTime <= 13 && newRate < bestPath.rate()/2)) {
+                        final ValveOpenPathWithHelp nextPath = new ValveOpenPathWithHelp(me, nextMove - moveTime,
+                                path.elephant, nextElephantMove - moveTime, timeLeft - moveTime, newRate, toOpen);
+                        if(timeLeft - moveTime == 0){
+                            if (bestPath.rate < path.rate) {
+                                bestPath = path;
+                            }
+                        } else {
+                            bestPath = bestPath.rate > nextPath.rate ? bestPath : nextPath;
+                            paths.add(nextPath);
+                        }
+                    }
+                }
+
+            } else {
+                for (String elephant : path.toOpen) {
+                    final int nextMove = path.currentMoveLeft - path.elephantMoveLeft - 1;
+                    final int nextElephantMove = shortestPaths.get(path.elephant).get(elephant);
+
+                    final int timeLeft = path.timeLeft - 1 - path.elephantMoveLeft;
+                    final int newRate = path.rate + (timeLeft - nextElephantMove) * valves.get(elephant).rate;
+
+                    final List<String> toOpen = new ArrayList<>(path.toOpen);
+                    toOpen.remove(elephant);
+
+                    final int moveTime = Math.min(nextMove, nextElephantMove);
+
+                    if (timeLeft - moveTime >= 0 && !(timeLeft - moveTime <= 13 && newRate < bestPath.rate()/2)) {
+                        final ValveOpenPathWithHelp nextPath = new ValveOpenPathWithHelp(path.current, nextMove - moveTime,
+                                elephant, nextElephantMove - moveTime, timeLeft - moveTime, newRate, toOpen);
+                        if(timeLeft - moveTime == 0){
+                            if (bestPath.rate < path.rate) {
+                                bestPath = path;
+                            }
+                        } else {
+                            bestPath = bestPath.rate > nextPath.rate ? bestPath : nextPath;
+                            paths.add(nextPath);
+                        }
+                    }
+                }
+            }
+        }
+
+        return bestPath.rate();
+    }
+
     private Map<String, Valve> initValves(List<String> input) {
         Map<String, Valve> valves = new HashMap<>();
         for (String raw : input) {
@@ -132,6 +242,16 @@ public class ProboscideaVolcanium {
         @Override
         public int compareTo(ValveOpenPath o) {
             return Comparator.comparing(ValveOpenPath::rate).compare(o, this);
+        }
+    }
+
+    private record ValveOpenPathWithHelp(String current, int currentMoveLeft, String elephant, int elephantMoveLeft,
+                                         int timeLeft, int rate, List<String> toOpen)
+            implements Comparable<ValveOpenPathWithHelp> {
+
+        @Override
+        public int compareTo(ValveOpenPathWithHelp o) {
+            return Comparator.comparing(ValveOpenPathWithHelp::rate).compare(o, this);
         }
     }
 
