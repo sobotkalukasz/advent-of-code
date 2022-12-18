@@ -17,10 +17,12 @@ public class BoilingBoulders {
 
     final Set<Coord> cubes;
     final DimensionHolder dimension;
+    final AirCache cache;
 
     public BoilingBoulders(final List<String> input) {
         this.cubes = input.stream().map(Coord::of).collect(Collectors.toSet());
         this.dimension = DimensionHolder.of(cubes);
+        this.cache = AirCache.empty();
     }
 
     public int surfaceArea() {
@@ -48,6 +50,20 @@ public class BoilingBoulders {
     }
 
     private boolean canReachFromOutside(final Coord coord) {
+
+        final boolean canReachFromOutside;
+        if (cache.outside.contains(coord)) {
+            canReachFromOutside = true;
+        } else if (cache.inside.contains(coord)) {
+            canReachFromOutside = false;
+        } else {
+            canReachFromOutside = determineIfCanReachFromOutside(coord);
+        }
+        return canReachFromOutside;
+
+    }
+
+    private boolean determineIfCanReachFromOutside(Coord coord) {
         final Coord target = dimension.getOverTopCoord();
 
         final Queue<AirPath> paths = new PriorityQueue<>();
@@ -55,13 +71,13 @@ public class BoilingBoulders {
 
         paths.add(new AirPath(coord, 0));
         visited.add(coord);
-        visited.addAll(cubes);
 
         while (!paths.isEmpty() && !paths.peek().coord.equals(target)) {
             final AirPath current = paths.poll();
             current.coord.getAdjacent()
                     .stream()
                     .filter(not(visited::contains))
+                    .filter(not(cubes::contains))
                     .filter(dimension::isInside)
                     .map(c -> new AirPath(c, current.moves + 1))
                     .forEach(next -> {
@@ -70,7 +86,9 @@ public class BoilingBoulders {
                     });
         }
 
-        return !paths.isEmpty();
+        final boolean canReachFromOutside = !paths.isEmpty();
+        cache.addToCache(canReachFromOutside, visited);
+        return canReachFromOutside;
     }
 
     private record Coord(int x, int y, int z) {
@@ -138,6 +156,21 @@ public class BoilingBoulders {
         @Override
         public int compareTo(AirPath o) {
             return Comparator.comparing(AirPath::moves).compare(o, this);
+        }
+    }
+
+    private record AirCache(Set<Coord> inside, Set<Coord> outside) {
+
+        static AirCache empty() {
+            return new AirCache(new HashSet<>(), new HashSet<>());
+        }
+
+        void addToCache(final boolean canReachFromOutside, final Set<Coord> toAdd) {
+            if (canReachFromOutside) {
+                this.outside.addAll(toAdd);
+            } else {
+                this.inside.addAll(toAdd);
+            }
         }
     }
 }
