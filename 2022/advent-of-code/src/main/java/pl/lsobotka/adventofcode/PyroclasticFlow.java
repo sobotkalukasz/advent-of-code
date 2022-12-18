@@ -10,6 +10,9 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/*
+ * https://adventofcode.com/2022/day/17
+ * */
 public class PyroclasticFlow {
 
     final String[] jetPattern;
