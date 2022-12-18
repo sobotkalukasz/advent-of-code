@@ -25,4 +25,18 @@ class BoilingBouldersTest extends BaseTest {
         assertEquals(expected, actual);
     }
 
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("BoilingBoulders_simple", 58), //
+                Arguments.of("BoilingBoulders", 2494));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    public void secondStarTest(final String fileName, final long expected) throws Exception {
+        final List<String> input = getFileInput(fileName);
+        final BoilingBoulders boulders = new BoilingBoulders(input);
+        final int actual = boulders.outsideSurfaceArea();
+        assertEquals(expected, actual);
+    }
+
 }
