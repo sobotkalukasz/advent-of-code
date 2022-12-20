@@ -23,4 +23,12 @@ public class BaseTest {
         bufferedReader.close();
         return input.get(0);
     }
+
+    public List<Integer> getFileInputAsInteger(String fileName) throws Exception {
+
+        BufferedReader bufferedReader = new BufferedReader(new FileReader(RESOURCE_PATH.concat(fileName)));
+        List<Integer> input = bufferedReader.lines().map(Integer::valueOf).collect(Collectors.toList());
+        bufferedReader.close();
+        return input;
+    }
 }
