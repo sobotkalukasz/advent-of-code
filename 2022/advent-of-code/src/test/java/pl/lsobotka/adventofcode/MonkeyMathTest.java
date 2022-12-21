@@ -25,4 +25,18 @@ class MonkeyMathTest extends BaseTest {
         assertEquals(expected, actual);
     }
 
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("MonkeyMath_simple", 301), //
+                Arguments.of("MonkeyMath", 3_327_575_724_809L));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    public void secondStarTest(final String fileName, final long expected) throws Exception {
+        final List<String> input = getFileInput(fileName);
+        final MonkeyMath monkeyMath = new MonkeyMath(input);
+        final long actual = monkeyMath.guessYellNumber();
+        assertEquals(expected, actual);
+    }
+
 }

@@ -3,6 +3,8 @@ package pl.lsobotka.adventofcode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 
 /*
  * https://adventofcode.com/2022/day/21
@@ -16,24 +18,90 @@ public class MonkeyMath {
     }
 
     long yellNumber() {
-        final String root = "root";
-        return monkeys.get(root).yellNumber(monkeys);
+        return monkeys.get("root").yellNumber(monkeys::get);
+    }
+
+    long guessYellNumber() {
+        final AtomicLong number = new AtomicLong(0);
+
+        final Monkey root = monkeys.get("root");
+        final Monkey human = new Monkey("humn", monkeyProvider -> number.get());
+
+        final Function<String, Monkey> provider = name -> name.equals(human.name) ? human : monkeys.get(name);
+
+        if (root.number instanceof Complex c) {
+            final Info info = Info.from(number, provider, monkeys.get(c.firstMonkey), monkeys.get(c.secondMonkey));
+
+            number.set(determineCloseNumber(number, info));
+            while (info.constValue() != info.next()) {
+                number.incrementAndGet();
+            }
+        }
+
+        return number.longValue();
+    }
+
+    private long determineCloseNumber(final AtomicLong number, final Info info) {
+        long offset = 100_000_000_000L;
+        number.set(0);
+
+        while (offset != 100) {
+            boolean searchingOptimalRange = true;
+            while (searchingOptimalRange) {
+                number.addAndGet(offset);
+                final long newNumber = info.next();
+                if (info.increase) {
+                    searchingOptimalRange = newNumber < info.constValue;
+                } else {
+                    searchingOptimalRange = newNumber > info.constValue;
+                }
+            }
+
+            number.set(number.get() - offset);
+            offset /= 10;
+        }
+
+        return number.get();
+    }
+
+    private record Info(Function<String, Monkey> provider, Monkey monkey, boolean increase, long constValue) {
+        static Info from(final AtomicLong tmp, final Function<String, Monkey> provider, final Monkey firstMonkey,
+                final Monkey secondMonkey) {
+
+            tmp.set(1);
+            final long firstA = firstMonkey.yellNumber(provider);
+            final long second = secondMonkey.yellNumber(provider);
+
+            tmp.set(100);
+            final long firstB = firstMonkey.yellNumber(provider);
+
+            final boolean isFirst = firstA != firstB;
+            final Monkey monkey = isFirst ? firstMonkey : secondMonkey;
+            final boolean increase = isFirst ? firstB < second : second < firstB;
+            final long constVal = isFirst ? second : firstB;
+
+            return new Info(provider, monkey, increase, constVal);
+        }
+
+        long next() {
+            return monkey.yellNumber(provider);
+        }
     }
 
     private record Monkey(String name, Yell number) {
-        long yellNumber(final Map<String, Monkey> monkeys) {
-            return number.yellNumber(monkeys);
+        long yellNumber(final Function<String, Monkey> monkeyProvider) {
+            return number.yellNumber(monkeyProvider);
         }
     }
 
     private interface Yell {
-        long yellNumber(final Map<String, Monkey> monkeys);
+        long yellNumber(final Function<String, Monkey> monkeyProvider);
     }
 
     private record Simple(long number) implements Yell {
 
         @Override
-        public long yellNumber(final Map<String, Monkey> monkeys) {
+        public long yellNumber(final Function<String, Monkey> monkeyProvider) {
             return number;
         }
     }
@@ -41,9 +109,9 @@ public class MonkeyMath {
     private record Complex(String firstMonkey, String secondMonkey, char operation) implements Yell {
 
         @Override
-        public long yellNumber(final Map<String, Monkey> monkeys) {
-            final long first = monkeys.get(firstMonkey).yellNumber(monkeys);
-            final long second = monkeys.get(secondMonkey).yellNumber(monkeys);
+        public long yellNumber(final Function<String, Monkey> monkeyProvider) {
+            final long first = monkeyProvider.apply(firstMonkey).yellNumber(monkeyProvider);
+            final long second = monkeyProvider.apply(secondMonkey).yellNumber(monkeyProvider);
 
             return switch (operation) {
                 case '+' -> first + second;
