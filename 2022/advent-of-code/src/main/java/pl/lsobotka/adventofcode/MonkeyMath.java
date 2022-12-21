@@ -55,7 +55,7 @@ public class MonkeyMath {
         }
 
         long seek() {
-            long range = 100_000_000_000_0L;
+            long range = 100_000_000_000_000L;
             number.set(0);
 
             while (range != 1) {
