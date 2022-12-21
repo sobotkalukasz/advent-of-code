@@ -11,6 +11,9 @@ import java.util.function.Function;
  * */
 public class MonkeyMath {
 
+    private static final String ROOT = "root";
+    private static final String HUMAN = "humn";
+
     final Map<String, Monkey> monkeys;
 
     public MonkeyMath(final List<String> input) {
@@ -18,79 +21,68 @@ public class MonkeyMath {
     }
 
     long yellNumber() {
-        return monkeys.get("root").yellNumber(monkeys::get);
+        return monkeys.get(ROOT).yellNumber(monkeys::get);
     }
 
     long guessYellNumber() {
         final AtomicLong number = new AtomicLong(0);
+        monkeys.put(HUMAN, new Monkey(HUMAN, monkeyProvider -> number.get()));
 
-        final Monkey root = monkeys.get("root");
-        final Monkey human = new Monkey("humn", monkeyProvider -> number.get());
+        return NumberSeeker.from(number, monkeys.get(ROOT).yell, monkeys::get).seek();
+    }
 
-        final Function<String, Monkey> provider = name -> name.equals(human.name) ? human : monkeys.get(name);
+    private record NumberSeeker(Monkey monkey, Function<String, Monkey> provider, boolean increase, long constValue,
+                                AtomicLong number) {
+        static NumberSeeker from(final AtomicLong number, final Yell yell, final Function<String, Monkey> provider) {
 
-        if (root.number instanceof Complex c) {
-            final Info info = Info.from(number, provider, monkeys.get(c.firstMonkey), monkeys.get(c.secondMonkey));
+            if (yell instanceof Complex y) {
+                number.set(1);
+                final long firstA = provider.apply(y.firstMonkey).yellNumber(provider);
+                final long second = provider.apply(y.secondMonkey).yellNumber(provider);
 
-            number.set(determineCloseNumber(number, info));
-            while (info.constValue() != info.next()) {
-                number.incrementAndGet();
+                number.set(100);
+                final long firstB = provider.apply(y.firstMonkey).yellNumber(provider);
+
+                final boolean isFirst = firstA != firstB;
+                final String monkey = isFirst ? y.firstMonkey : y.secondMonkey;
+                final boolean increase = isFirst ? firstB < second : second < firstB;
+                final long constVal = isFirst ? second : firstB;
+
+                return new NumberSeeker(provider.apply(monkey), provider, increase, constVal, number);
+            } else {
+                throw new IllegalArgumentException("Not supported Yell type");
             }
         }
 
-        return number.longValue();
-    }
+        long seek() {
+            long range = 100_000_000_000_0L;
+            number.set(0);
 
-    private long determineCloseNumber(final AtomicLong number, final Info info) {
-        long offset = 100_000_000_000L;
-        number.set(0);
-
-        while (offset != 100) {
-            boolean searchingOptimalRange = true;
-            while (searchingOptimalRange) {
-                number.addAndGet(offset);
-                final long newNumber = info.next();
-                if (info.increase) {
-                    searchingOptimalRange = newNumber < info.constValue;
-                } else {
-                    searchingOptimalRange = newNumber > info.constValue;
+            while (range != 1) {
+                range /= 10;
+                boolean searchingOptimalRange = true;
+                while (searchingOptimalRange) {
+                    number.addAndGet(range);
+                    final long next = next();
+                    if (increase) {
+                        searchingOptimalRange = next < constValue;
+                    } else {
+                        searchingOptimalRange = next > constValue;
+                    }
                 }
+                number.set(number.get() - range);
             }
-
-            number.set(number.get() - offset);
-            offset /= 10;
+            return number.incrementAndGet();
         }
 
-        return number.get();
-    }
-
-    private record Info(Function<String, Monkey> provider, Monkey monkey, boolean increase, long constValue) {
-        static Info from(final AtomicLong tmp, final Function<String, Monkey> provider, final Monkey firstMonkey,
-                final Monkey secondMonkey) {
-
-            tmp.set(1);
-            final long firstA = firstMonkey.yellNumber(provider);
-            final long second = secondMonkey.yellNumber(provider);
-
-            tmp.set(100);
-            final long firstB = firstMonkey.yellNumber(provider);
-
-            final boolean isFirst = firstA != firstB;
-            final Monkey monkey = isFirst ? firstMonkey : secondMonkey;
-            final boolean increase = isFirst ? firstB < second : second < firstB;
-            final long constVal = isFirst ? second : firstB;
-
-            return new Info(provider, monkey, increase, constVal);
-        }
-
-        long next() {
+        private long next() {
             return monkey.yellNumber(provider);
         }
     }
 
-    private record Monkey(String name, Yell number) {
+    private record Monkey(String name, Yell yell) {
         long yellNumber(final Function<String, Monkey> monkeyProvider) {
-            return number.yellNumber(monkeyProvider);
+            return yell.yellNumber(monkeyProvider);
         }
     }
 
@@ -106,19 +98,19 @@ public class MonkeyMath {
         }
     }
 
-    private record Complex(String firstMonkey, String secondMonkey, char operation) implements Yell {
+    private record Complex(String firstMonkey, String secondMonkey, char operator) implements Yell {
 
         @Override
         public long yellNumber(final Function<String, Monkey> monkeyProvider) {
             final long first = monkeyProvider.apply(firstMonkey).yellNumber(monkeyProvider);
             final long second = monkeyProvider.apply(secondMonkey).yellNumber(monkeyProvider);
 
-            return switch (operation) {
+            return switch (operator) {
                 case '+' -> first + second;
                 case '-' -> first - second;
                 case '/' -> first / second;
                 case '*' -> first * second;
-                default -> throw new IllegalStateException("Unexpected value: " + operation);
+                default -> throw new IllegalStateException("Unexpected value: " + operator);
             };
         }
     }
