@@ -21,7 +21,22 @@ class MonkeyMapTest extends BaseTest {
     public void firstStarTest(final String fileName, final long expected) throws Exception {
         final List<String> input = getFileInput(fileName);
         final MonkeyMap monkeyMap = new MonkeyMap(input);
-        final long actual = monkeyMap.determinePassword();
+        final long actual = monkeyMap.determinePasswordOnUnfoldedMap();
+        assertEquals(expected, actual);
+    }
+
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("MonkeyMap_simple", 5031), //
+                Arguments.of("MonkeyMap", 197_122)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    public void secondStarTest(final String fileName, final long expected) throws Exception {
+        final List<String> input = getFileInput(fileName);
+        final MonkeyMap monkeyMap = new MonkeyMap(input);
+        final long actual = monkeyMap.determinePasswordOnFoldedMap();
         assertEquals(expected, actual);
     }
 
