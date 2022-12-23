@@ -1,5 +1,6 @@
 package pl.lsobotka.adventofcode;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -7,15 +8,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /*
  * https://adventofcode.com/2022/day/23
  * */
 public class UnstableDiffusion {
 
-    Map<Integer, Coord> initialPositions;
+    final Map<Integer, Coord> initialPositions;
 
     public UnstableDiffusion(final List<String> input) {
         this.initialPositions = getInitialPositions(input);
@@ -30,46 +29,47 @@ public class UnstableDiffusion {
     }
 
     public long execute(final Result type) {
-        int roundCounter = 1;
+        int roundCounter = 0;
         final Map<Integer, Coord> actualPositions = new HashMap<>(initialPositions);
         final LinkedList<Dir> dirs = new LinkedList<>(Dir.getDirs());
 
+        final Map<Coord, List<Integer>> maybe = new HashMap<>();
+        final Collection<Coord> occupied = new HashSet<>();
+
         boolean searching = true;
         while (searching) {
-            final Collection<Coord> occupied = actualPositions.values();
+            roundCounter++;
+            occupied.addAll(actualPositions.values());
 
-            final List<Integer> toMove = actualPositions.entrySet()
-                    .stream()
-                    .filter(e -> e.getValue().getAllAdjacent().stream().anyMatch(occupied::contains))
-                    .map(Map.Entry::getKey)
-                    .toList();
-            if (toMove.isEmpty()) {
-                break;
-            }
-
-            final Map<Integer, Coord> possible = new HashMap<>();
-            for (Integer elf : toMove) {
-                final Coord move = getMove(occupied, actualPositions.get(elf), dirs);
-                if (move != null) {
-                    possible.put(elf, move);
+            for (Map.Entry<Integer, Coord> elf : actualPositions.entrySet()) {
+                final boolean shouldMove = elf.getValue().getAllAdjacent().stream().anyMatch(occupied::contains);
+                if (shouldMove) {
+                    final Coord move = possibleMove(occupied, elf.getValue(), dirs);
+                    if (move != null) {
+                        if (maybe.containsKey(move)) {
+                            maybe.get(move).add(elf.getKey());
+                        } else {
+                            final List<Integer> elves = new ArrayList<>();
+                            elves.add(elf.getKey());
+                            maybe.put(move, elves);
+                        }
+                    }
                 }
             }
 
-            final Map<Coord, Long> occur = possible.values()
-                    .stream()
-                    .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
-
-            possible.forEach((elf, c) -> {
-                if (occur.get(c) == 1) {
-                    actualPositions.put(elf, c);
+            maybe.forEach((coord, elves) -> {
+                if (elves.size() == 1) {
+                    actualPositions.put(elves.get(0), coord);
                 }
             });
 
-            dirs.addLast(dirs.removeFirst());
-            roundCounter++;
-            if (type == Result.EMPTY_SIZE && roundCounter > 10) {
+            if ((type == Result.EMPTY_SIZE && roundCounter == 10) || maybe.isEmpty()) {
                 searching = false;
             }
+
+            dirs.addLast(dirs.removeFirst());
+            maybe.clear();
+            occupied.clear();
         }
 
         final long result;
@@ -88,7 +88,7 @@ public class UnstableDiffusion {
         return result;
     }
 
-    private Coord getMove(final Collection<Coord> occupied, Coord current, final List<Dir> dirs) {
+    private Coord possibleMove(final Collection<Coord> occupied, final Coord current, final List<Dir> dirs) {
         Coord coord = null;
         for (Dir dir : dirs) {
             final boolean canMove = current.getAdjacentFor(dir).stream().noneMatch(occupied::contains);
@@ -97,7 +97,6 @@ public class UnstableDiffusion {
                 break;
             }
         }
-
         return coord;
     }
 
@@ -133,7 +132,7 @@ public class UnstableDiffusion {
             };
         }
 
-        Set<Coord> getNorth() {
+        private Set<Coord> getNorth() {
             final Set<Coord> adjacent = new HashSet<>();
             adjacent.add(Coord.of(row - 1, col - 1));
             adjacent.add(Coord.of(row - 1, col));
@@ -141,7 +140,7 @@ public class UnstableDiffusion {
             return adjacent;
         }
 
-        Set<Coord> getEast() {
+        private Set<Coord> getEast() {
             final Set<Coord> adjacent = new HashSet<>();
             adjacent.add(Coord.of(row + 1, col + 1));
             adjacent.add(Coord.of(row, col + 1));
@@ -149,7 +148,7 @@ public class UnstableDiffusion {
             return adjacent;
         }
 
-        Set<Coord> getSouth() {
+        private Set<Coord> getSouth() {
             final Set<Coord> adjacent = new HashSet<>();
             adjacent.add(Coord.of(row + 1, col - 1));
             adjacent.add(Coord.of(row + 1, col));
@@ -157,7 +156,7 @@ public class UnstableDiffusion {
             return adjacent;
         }
 
-        Set<Coord> getWest() {
+        private Set<Coord> getWest() {
             final Set<Coord> adjacent = new HashSet<>();
             adjacent.add(Coord.of(row + 1, col - 1));
             adjacent.add(Coord.of(row, col - 1));
