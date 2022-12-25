@@ -4,7 +4,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /*
- * https://adventofcode.com/2022/day/23
+ * https://adventofcode.com/2022/day/24
  * */
 public class BlizzardBasin {
 
@@ -66,7 +66,7 @@ public class BlizzardBasin {
         return onceAgain.moves;
     }
 
-    BasinPath lessMoves(final Map<Integer, WindPerMove> windPerMove, final Coord start, final Coord end,
+    private BasinPath lessMoves(final Map<Integer, WindPerMove> windPerMove, final Coord start, final Coord end,
             final int moveCount) {
 
         final Queue<BasinPath> paths = new PriorityQueue<>();
