@@ -56,7 +56,7 @@ public class SunnyAsteroidsTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("simpleProgramFile")
-    public void simpleProgramFileTest(String fileName, long input, long expected) throws Exception {
+    public void simpleProgramFileTest(String fileName, long input, long expected) {
         long[] program = getFileInput(fileName).stream().map(s -> s.split(",")).flatMap(Stream::of).mapToLong(Long::valueOf).toArray();
         SunnyAsteroids sunnyAsteroids = new SunnyAsteroids(program, input);
         List<Long> actual = sunnyAsteroids.execute();

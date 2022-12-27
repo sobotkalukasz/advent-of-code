@@ -1,6 +1,5 @@
 package pl.lsobotka.adventofcode;
 
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.params.ParameterizedTest;
@@ -36,9 +35,8 @@ public class FlawedFrequencyTransmissionTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("testResourceFile")
-    public void firstStarTest(final String fileName, final int[] basePattern, final int phases, final String expected)
-            throws Exception {
-        final String input = getFileInput(fileName).stream().collect(Collectors.joining());
+    public void firstStarTest(final String fileName, final int[] basePattern, final int phases, final String expected) {
+        final String input = String.join("", getFileInput(fileName));
 
         final FlawedFrequencyTransmission transmission = new FlawedFrequencyTransmission(basePattern, input);
         final String actual = transmission.getOutputAfter(phases);
@@ -51,9 +49,8 @@ public class FlawedFrequencyTransmissionTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("realMessageTestResourceFile")
-    public void realMessageTest(final String fileName, final int[] basePattern, final String expected)
-            throws Exception {
-        final String input = getFileInput(fileName).stream().collect(Collectors.joining());
+    public void realMessageTest(final String fileName, final int[] basePattern, final String expected) {
+        final String input = String.join("", getFileInput(fileName));
 
         final FlawedFrequencyTransmission transmission = new FlawedFrequencyTransmission(basePattern, input);
         final String actual = transmission.getRealOutput();

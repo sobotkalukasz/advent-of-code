@@ -36,7 +36,7 @@ public class CrossedWiresTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("simplePathsFile")
-    public void simplePathsFileTest(String fileName, int expected) throws Exception {
+    public void simplePathsFileTest(String fileName, int expected) {
         List<String> input = getFileInput(fileName);
         List<String> firstPaths = Stream.of(input.get(0).split(",")).collect(Collectors.toList());
         List<String> secondPaths = Stream.of(input.get(1).split(",")).collect(Collectors.toList());
@@ -70,7 +70,7 @@ public class CrossedWiresTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("fewestStepsFile")
-    public void fewestStepsFileTest(String fileName, int expected) throws Exception {
+    public void fewestStepsFileTest(String fileName, int expected) {
         List<String> input = getFileInput(fileName);
         List<String> firstPaths = Stream.of(input.get(0).split(",")).collect(Collectors.toList());
         List<String> secondPaths = Stream.of(input.get(1).split(",")).collect(Collectors.toList());

@@ -16,7 +16,7 @@ public class CarePackageTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("testResourceFile")
-    public void countBlockTilesTest(String fileName, int expected) throws Exception {
+    public void countBlockTilesTest(String fileName, int expected) {
         long[] program = getFileInput(fileName).stream()
                 .map(s -> s.split(","))
                 .flatMap(Stream::of)
@@ -34,7 +34,7 @@ public class CarePackageTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("scoreTestResourceFile")
-    public void getScoreTest(String fileName, long expected) throws Exception {
+    public void getScoreTest(String fileName, long expected) {
         long[] program = getFileInput(fileName).stream()
                 .map(s -> s.split(","))
                 .flatMap(Stream::of)

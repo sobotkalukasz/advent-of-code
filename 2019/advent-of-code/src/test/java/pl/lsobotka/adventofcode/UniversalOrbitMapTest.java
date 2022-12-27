@@ -33,7 +33,7 @@ public class UniversalOrbitMapTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("simpleOrbitMapFile")
-    public void simpleOrbitMapFileTest(String fileName, int expected) throws Exception {
+    public void simpleOrbitMapFileTest(String fileName, int expected) {
         List<String> input = getFileInput(fileName);
         UniversalOrbitMap orbitMap = new UniversalOrbitMap(input);
         int actual = orbitMap.countOrbits();
@@ -62,7 +62,7 @@ public class UniversalOrbitMapTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("orbitTransferFile")
-    public void orbitTransferFileTest(String fileName, String from, String to, int expected) throws Exception {
+    public void orbitTransferFileTest(String fileName, String from, String to, int expected) {
         List<String> input = getFileInput(fileName);
         UniversalOrbitMap orbitMap = new UniversalOrbitMap(input);
         int actual = orbitMap.countOrbitalTransfer(from, to);

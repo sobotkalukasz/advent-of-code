@@ -36,7 +36,7 @@ public class ProgramAlarmTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("programAlarm")
-    public void programAlarmTest(String fileName, int firstVal, int secondVal, int expected) throws Exception {
+    public void programAlarmTest(String fileName, int firstVal, int secondVal, int expected) {
         int[] ints = getFileInput(fileName).stream().map(s -> s.split(",")).flatMap(Stream::of).mapToInt(Integer::valueOf).toArray();
         ints[1] = firstVal;
         ints[2] = secondVal;
@@ -53,7 +53,7 @@ public class ProgramAlarmTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("findParams")
-    public void findParamsTest(String fileName, int searchVal, int expected) throws Exception {
+    public void findParamsTest(String fileName, int searchVal, int expected) {
         int[] ints = getFileInput(fileName).stream().map(s -> s.split(",")).flatMap(Stream::of).mapToInt(Integer::valueOf).toArray();
         ProgramAlarm.Params params = ProgramAlarm.findParamsFor(ints, searchVal);
         assertEquals(100 * params.noun() + params.verb(), expected);

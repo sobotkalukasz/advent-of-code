@@ -38,7 +38,7 @@ public class RocketEquationTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("simpleMassFile")
-    public void simpleMassFileTest(String fileName, int expected) throws Exception {
+    public void simpleMassFileTest(String fileName, int expected) {
         List<Integer> input = getFileInput(fileName).stream().map(Integer::valueOf).collect(Collectors.toList());
 
         RocketEquation equation = new RocketEquation();
@@ -71,7 +71,7 @@ public class RocketEquationTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("simpleMassWithFuelFile")
-    public void simpleMassWithFuelFileTest(String fileName, int expected) throws Exception {
+    public void simpleMassWithFuelFileTest(String fileName, int expected) {
         List<Integer> input = getFileInput(fileName).stream().map(Integer::valueOf).collect(Collectors.toList());
 
         RocketEquation equation = new RocketEquation();

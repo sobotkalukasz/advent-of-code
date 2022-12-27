@@ -53,7 +53,7 @@ public class SpaceStoichiometryTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("minimalOreCountTestResource")
-    public void minimalOreCountTest(final String fileName, long expected) throws Exception {
+    public void minimalOreCountTest(final String fileName, long expected) {
         final List<String> input = getFileInput(fileName);
 
         final SpaceStoichiometry spaceStoichiometry = new SpaceStoichiometry(input);
@@ -98,7 +98,7 @@ public class SpaceStoichiometryTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("maxFuelProduceTestResource")
-    public void maxFuelProduceTestResourceTest(final String fileName, long expected) throws Exception {
+    public void maxFuelProduceTestResourceTest(final String fileName, long expected) {
         final List<String> input = getFileInput(fileName);
 
         final SpaceStoichiometry spaceStoichiometry = new SpaceStoichiometry(input);

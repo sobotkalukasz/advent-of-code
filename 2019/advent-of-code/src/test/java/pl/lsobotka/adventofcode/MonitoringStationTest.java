@@ -20,7 +20,7 @@ public class MonitoringStationTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("asteroids")
-    public void findMonitoringStationTest(String fileName, int expected) throws Exception {
+    public void findMonitoringStationTest(String fileName, int expected) {
         final List<String> input = getFileInput(fileName);
         final char[][] asteroidMap = new char[input.size()][];
         for (int i = 0; i < input.size(); i++) {
@@ -39,7 +39,7 @@ public class MonitoringStationTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("destroyAsteroids")
-    public void destroyAsteroidsTest(String fileName, int asteroidNumber, int expected) throws Exception {
+    public void destroyAsteroidsTest(String fileName, int asteroidNumber, int expected) {
         final List<String> input = getFileInput(fileName);
         final char[][] asteroidMap = new char[input.size()][];
         for (int i = 0; i < input.size(); i++) {

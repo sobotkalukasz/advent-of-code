@@ -19,7 +19,7 @@ public class SpaceImageFormatTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("imageCodeFile")
-    public void imageCodeFileTest(String fileName, int wide, int tall, long expected) throws Exception {
+    public void imageCodeFileTest(String fileName, int wide, int tall, long expected) {
         List<String> input = getFileInput(fileName);
         SpaceImageFormat imageFormat = new SpaceImageFormat(input.get(0), wide, tall);
         long actual = imageFormat.getLayerCode();
@@ -41,7 +41,7 @@ public class SpaceImageFormatTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("decodeImageFile")
-    public void decodeImageFileTest(String fileName, int wide, int tall, List<String> expected) throws Exception {
+    public void decodeImageFileTest(String fileName, int wide, int tall, List<String> expected) {
         List<String> input = getFileInput(fileName);
         SpaceImageFormat imageFormat = new SpaceImageFormat(input.get(0), wide, tall);
         List<String> actual = imageFormat.decodeImage();

@@ -37,7 +37,7 @@ public class AmplificationCircuitTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("maxSignalFile")
-    public void maxSignalTest(String fileName, long[] range, long expected) throws Exception {
+    public void maxSignalTest(String fileName, long[] range, long expected) {
         long[] program = getFileInput(fileName).stream().map(s -> s.split(",")).flatMap(Stream::of).mapToLong(Long::valueOf).toArray();
         AmplificationCircuit circuit = new AmplificationCircuit(program);
         long actual = circuit.calculateMaxSignal(range);
@@ -70,7 +70,7 @@ public class AmplificationCircuitTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("maxSignalLoopFile")
-    public void maxSignalLoopFileTest(String fileName, long[] range, long expected) throws Exception {
+    public void maxSignalLoopFileTest(String fileName, long[] range, long expected) {
         long[] program = getFileInput(fileName).stream().map(s -> s.split(",")).flatMap(Stream::of).mapToLong(Long::valueOf).toArray();
         AmplificationCircuit circuit = new AmplificationCircuit(program);
         long actual = circuit.calculateMaxSignalLoop(range);

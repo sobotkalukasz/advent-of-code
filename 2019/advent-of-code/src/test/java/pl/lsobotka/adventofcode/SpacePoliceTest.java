@@ -16,7 +16,7 @@ public class SpacePoliceTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("testResourceFile")
-    public void countPaintedPanelTest(String fileName, int expected) throws Exception {
+    public void countPaintedPanelTest(String fileName, int expected) {
         long[] program = getFileInput(fileName).stream()
                 .map(s -> s.split(","))
                 .flatMap(Stream::of)
@@ -34,7 +34,7 @@ public class SpacePoliceTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("printResourceFile")
-    public void printPaintedPanelTest(final String fileName, final String expected) throws Exception {
+    public void printPaintedPanelTest(final String fileName, final String expected) {
         long[] program = getFileInput(fileName).stream()
                 .map(s -> s.split(","))
                 .flatMap(Stream::of)

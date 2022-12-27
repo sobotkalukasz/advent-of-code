@@ -16,7 +16,7 @@ public class OxygenSystemTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("shortestPathTestResourceFile")
-    public void shortestPathTest(String fileName, int expected) throws Exception {
+    public void shortestPathTest(String fileName, int expected) {
         long[] program = getFileInput(fileName).stream()
                 .map(s -> s.split(","))
                 .flatMap(Stream::of)
@@ -34,7 +34,7 @@ public class OxygenSystemTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("fillWithOxygenTestResourceFile")
-    public void fillWithOxygenTest(String fileName, int expected) throws Exception {
+    public void fillWithOxygenTest(String fileName, int expected) {
         long[] program = getFileInput(fileName).stream()
                 .map(s -> s.split(","))
                 .flatMap(Stream::of)

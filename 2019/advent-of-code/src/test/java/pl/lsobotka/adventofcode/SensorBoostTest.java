@@ -52,7 +52,7 @@ public class SensorBoostTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("sensorBoostFile")
-    public void sensorBoostFileTest(String fileName, long input, long expected) throws Exception {
+    public void sensorBoostFileTest(String fileName, long input, long expected) {
         long[] program = getFileInput(fileName).stream().map(s -> s.split(",")).flatMap(Stream::of).mapToLong(Long::valueOf).toArray();
         SensorBoost boost = new SensorBoost(program, input);
         List<Long> actual = boost.execute();
