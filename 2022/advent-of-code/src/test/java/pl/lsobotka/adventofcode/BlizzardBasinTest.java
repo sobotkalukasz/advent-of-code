@@ -18,7 +18,7 @@ class BlizzardBasinTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("firstStar")
-    public void firstStarTest(final String fileName, final long expected) throws Exception {
+    public void firstStarTest(final String fileName, final long expected) {
         final List<String> input = getFileInput(fileName);
         final BlizzardBasin basin = new BlizzardBasin(input);
         final int actual = basin.oneWay();
@@ -32,7 +32,7 @@ class BlizzardBasinTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("secondStar")
-    public void secondStarTest(final String fileName, final long expected) throws Exception {
+    public void secondStarTest(final String fileName, final long expected) {
         final List<String> input = getFileInput(fileName);
         final BlizzardBasin basin = new BlizzardBasin(input);
         final int actual = basin.goOnceAgain();

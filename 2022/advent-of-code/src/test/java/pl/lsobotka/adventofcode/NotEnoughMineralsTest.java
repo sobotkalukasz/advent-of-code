@@ -18,7 +18,7 @@ class NotEnoughMineralsTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("firstStar")
-    public void firstStarTest(final String fileName, final long expected) throws Exception {
+    public void firstStarTest(final String fileName, final long expected) {
         final List<String> input = getFileInput(fileName);
         final NotEnoughMinerals minerals = new NotEnoughMinerals(input);
         final int actual = minerals.qualityLevel();
@@ -32,7 +32,7 @@ class NotEnoughMineralsTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("secondStar")
-    public void secondStarTest(final String fileName, final int amount, final long expected) throws Exception {
+    public void secondStarTest(final String fileName, final int amount, final long expected) {
         final List<String> input = getFileInput(fileName);
         final NotEnoughMinerals minerals = new NotEnoughMinerals(input);
         final int actual = minerals.qualityLevelOfFirst(amount);

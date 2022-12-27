@@ -18,7 +18,7 @@ class MonkeyMapTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("firstStar")
-    public void firstStarTest(final String fileName, final long expected) throws Exception {
+    public void firstStarTest(final String fileName, final long expected) {
         final List<String> input = getFileInput(fileName);
         final MonkeyMap monkeyMap = new MonkeyMap(input);
         final long actual = monkeyMap.determinePasswordOnUnfoldedMap();
@@ -33,7 +33,7 @@ class MonkeyMapTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("secondStar")
-    public void secondStarTest(final String fileName, final long expected) throws Exception {
+    public void secondStarTest(final String fileName, final long expected) {
         final List<String> input = getFileInput(fileName);
         final MonkeyMap monkeyMap = new MonkeyMap(input);
         final long actual = monkeyMap.determinePasswordOnFoldedMap();

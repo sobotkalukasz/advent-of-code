@@ -59,7 +59,7 @@ class SupplyStacksTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("firstStarFile")
-    public void firstStarTest(final String fileName, final String expected) throws Exception {
+    public void firstStarTest(final String fileName, final String expected) {
         final List<String> input = getFileInput(fileName);
         final SupplyStacks supplyStacks = new SupplyStacks(input);
         final String actual = supplyStacks.applySingleOperations();
@@ -72,7 +72,7 @@ class SupplyStacksTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("secondStarFile")
-    public void secondStarTest(final String fileName, final String expected) throws Exception {
+    public void secondStarTest(final String fileName, final String expected) {
         final List<String> input = getFileInput(fileName);
         final SupplyStacks supplyStacks = new SupplyStacks(input);
         final String actual = supplyStacks.applyBulkOperations();

@@ -18,7 +18,7 @@ class FullOfHotAirTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("firstStar")
-    public void firstStarTest(final String fileName, final String expected) throws Exception {
+    public void firstStarTest(final String fileName, final String expected) {
         final List<String> input = getFileInput(fileName);
         final FullOfHotAir hotAir = new FullOfHotAir(input);
         final String actual = hotAir.sumSnafu();

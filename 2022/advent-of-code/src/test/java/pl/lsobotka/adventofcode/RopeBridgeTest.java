@@ -20,7 +20,7 @@ public class RopeBridgeTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("cases")
-    public void caseTest(final String fileName, final int ropeSize, final int expected) throws Exception {
+    public void caseTest(final String fileName, final int ropeSize, final int expected) {
         final List<String> input = getFileInput(fileName);
         final RopeBridge ropeBridge = new RopeBridge(input);
         final int actual = ropeBridge.countUniqueTailPositionsOf(ropeSize);

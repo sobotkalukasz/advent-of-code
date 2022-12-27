@@ -18,7 +18,7 @@ public class CathodeRayTubeTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("firstStar")
-    public void firstStarTest(final String fileName, final long expected) throws Exception {
+    public void firstStarTest(final String fileName, final long expected) {
         final List<String> input = getFileInput(fileName);
         final CathodeRayTube cathodeRayTube = new CathodeRayTube(input);
         final long actual = cathodeRayTube.determineSignalStrength();
@@ -32,7 +32,7 @@ public class CathodeRayTubeTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("secondStar")
-    public void secondStarTest(final String fileName) throws Exception {
+    public void secondStarTest(final String fileName) {
         final List<String> input = getFileInput(fileName);
         final CathodeRayTube cathodeRayTube = new CathodeRayTube(input);
         System.out.println(cathodeRayTube.printScreen());

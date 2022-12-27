@@ -46,7 +46,7 @@ class CalorieCountingTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("firstStarFile")
-    public void firstStarCalorieCountingTest(final String fileName, final long expected) throws Exception {
+    public void firstStarCalorieCountingTest(final String fileName, final long expected) {
         final List<String> input = getFileInput(fileName);
         final CalorieCounting counting = new CalorieCounting(input);
         final long actual = counting.getMostCalories();
@@ -59,8 +59,7 @@ class CalorieCountingTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("secondStarFile")
-    public void secondStarCalorieCountingTest(final String fileName, final int top, final long expected)
-            throws Exception {
+    public void secondStarCalorieCountingTest(final String fileName, final int top, final long expected) {
         final List<String> input = getFileInput(fileName);
         final CalorieCounting counting = new CalorieCounting(input);
         final long actual = counting.getTopCalories(top);

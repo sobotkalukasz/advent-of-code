@@ -48,7 +48,7 @@ public class TuningTroubleTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("firstStarFile")
-    public void firstStarTest(final String fileName, final int expected) throws Exception {
+    public void firstStarTest(final String fileName, final int expected) {
         final String input = String.join("", getFileInput(fileName));
         final TuningTrouble tuningTrouble = new TuningTrouble(input);
         final int actual = tuningTrouble.determineStartOfPacketIndex();
@@ -61,7 +61,7 @@ public class TuningTroubleTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("secondStarFile")
-    public void secondStarTest(final String fileName, final int expected) throws Exception {
+    public void secondStarTest(final String fileName, final int expected) {
         final String input = String.join("", getFileInput(fileName));
         final TuningTrouble tuningTrouble = new TuningTrouble(input);
         final int actual = tuningTrouble.determineStartOfMessageIndex();

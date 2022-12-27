@@ -18,7 +18,7 @@ class GrovePositioningSystemTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("firstStar")
-    public void firstStarTest(final String fileName, final long expected) throws Exception {
+    public void firstStarTest(final String fileName, final long expected) {
         final List<Integer> input = getFileInputAsInteger(fileName);
         final GrovePositioningSystem system = new GrovePositioningSystem(input);
         final long actual = system.sumOfCoordinates();
@@ -32,7 +32,7 @@ class GrovePositioningSystemTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("secondStar")
-    public void secondStarTest(final String fileName, final long expected) throws Exception {
+    public void secondStarTest(final String fileName, final long expected) {
         final List<Integer> input = getFileInputAsInteger(fileName);
         final GrovePositioningSystem system = new GrovePositioningSystem(input);
         final long actual = system.sumOfCoordinatesWithDecryptionKey();

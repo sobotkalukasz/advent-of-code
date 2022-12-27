@@ -17,7 +17,7 @@ class PyroclasticFlowTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("firstStar")
-    public void firstStarTest(final String fileName, final long rounds, final long expected) throws Exception {
+    public void firstStarTest(final String fileName, final long rounds, final long expected) {
         final String input = getFileInputSingleLine(fileName);
         final PyroclasticFlow flow = new PyroclasticFlow(input);
         final long actual = flow.rockFall(rounds);
@@ -31,7 +31,7 @@ class PyroclasticFlowTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("secondStar")
-    public void secondStarTest(final String fileName, final long rounds, final long expected) throws Exception {
+    public void secondStarTest(final String fileName, final long rounds, final long expected) {
         final String input = getFileInputSingleLine(fileName);
         final PyroclasticFlow flow = new PyroclasticFlow(input);
         final long actual = flow.rockFall(rounds);

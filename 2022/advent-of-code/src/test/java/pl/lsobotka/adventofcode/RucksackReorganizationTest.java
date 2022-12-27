@@ -45,7 +45,7 @@ class RucksackReorganizationTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("firstStarFile")
-    public void firstStarTest(final String fileName, final long expected) throws Exception {
+    public void firstStarTest(final String fileName, final long expected) {
         final List<String> input = getFileInput(fileName);
         final RucksackReorganization reorganization = new RucksackReorganization(input);
         long actual = reorganization.sumPriorityOfCommonItems();
@@ -58,7 +58,7 @@ class RucksackReorganizationTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("secondStarFile")
-    public void secondStarTest(final String fileName, final long expected) throws Exception {
+    public void secondStarTest(final String fileName, final long expected) {
         final List<String> input = getFileInput(fileName);
         final RucksackReorganization reorganization = new RucksackReorganization(input);
         long actual = reorganization.sumPriorityOfCommonItemsInGroupOfRucksacks();

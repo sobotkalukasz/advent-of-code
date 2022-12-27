@@ -18,7 +18,7 @@ class BeaconExclusionZoneTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("firstStar")
-    public void firstStarTest(final String fileName, final long rowToCheck, final long expected) throws Exception {
+    public void firstStarTest(final String fileName, final long rowToCheck, final long expected) {
         final List<String> input = getFileInput(fileName);
         final BeaconExclusionZone exclusionZone = new BeaconExclusionZone(input);
         final long actual = exclusionZone.countEmptyFor(rowToCheck);
@@ -33,7 +33,7 @@ class BeaconExclusionZoneTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("secondStar")
-    public void secondStarTest(final String fileName, final long max, final long expected) throws Exception {
+    public void secondStarTest(final String fileName, final long max, final long expected) {
         final List<String> input = getFileInput(fileName);
         final BeaconExclusionZone exclusionZone = new BeaconExclusionZone(input);
         final long actual = exclusionZone.findTuningFrequency(max);

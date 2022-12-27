@@ -20,7 +20,7 @@ public class MonkeyMiddleTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("testCase")
-    public void caseTest(final String fileName, final int rounds, final long expected) throws Exception {
+    public void caseTest(final String fileName, final int rounds, final long expected) {
         final List<String> input = getFileInput(fileName);
         final MonkeyMiddle monkeyMiddle = new MonkeyMiddle(input);
         final long actual = monkeyMiddle.getMonkeyBusiness(rounds);

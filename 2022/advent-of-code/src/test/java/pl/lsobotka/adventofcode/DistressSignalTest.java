@@ -31,7 +31,7 @@ public class DistressSignalTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("firstStar")
-    public void firstStarTest(final String fileName, final int expected) throws Exception {
+    public void firstStarTest(final String fileName, final int expected) {
         final List<String> input = getFileInput(fileName);
         final DistressSignal signal = new DistressSignal(input);
         final int actual = signal.determineSumOfRightOrderPairs();
@@ -45,7 +45,7 @@ public class DistressSignalTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("secondStar")
-    public void secondStarTest(final String fileName, final int expected) throws Exception {
+    public void secondStarTest(final String fileName, final int expected) {
         final List<String> input = getFileInput(fileName);
         final DistressSignal signal = new DistressSignal(input);
         final int actual = signal.determineDecoderKey();

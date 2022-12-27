@@ -18,7 +18,7 @@ public class HillClimbingTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("firstStar")
-    public void firstStarTest(final String fileName, final int expected) throws Exception {
+    public void firstStarTest(final String fileName, final int expected) {
         final List<String> input = getFileInput(fileName);
         final HillClimbing hill = new HillClimbing(input);
         final int actual = hill.getBestStepsToTopFromStartPoint();
@@ -32,7 +32,7 @@ public class HillClimbingTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("secondStar")
-    public void secondStarTest(final String fileName, final int expected) throws Exception {
+    public void secondStarTest(final String fileName, final int expected) {
         final List<String> input = getFileInput(fileName);
         final HillClimbing hill = new HillClimbing(input);
         final int actual = hill.getBestStepsToTopFromPossibleStartingPoints();

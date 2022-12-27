@@ -42,7 +42,7 @@ class RockPaperScissorsTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("firstStarFile")
-    public void firstStarTest(final String fileName, final long expected) throws Exception {
+    public void firstStarTest(final String fileName, final long expected) {
         final List<String> input = getFileInput(fileName);
         final RockPaperScissors rockPaperScissors = new RockPaperScissors(input);
         final long actual = rockPaperScissors.pointsInRoundsByMove();
@@ -55,7 +55,7 @@ class RockPaperScissorsTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("secondStarFile")
-    public void secondStarTest(final String fileName, final long expected) throws Exception {
+    public void secondStarTest(final String fileName, final long expected) {
         final List<String> input = getFileInput(fileName);
         final RockPaperScissors rockPaperScissors = new RockPaperScissors(input);
         final long actual = rockPaperScissors.pointsInRoundsByOutcome();

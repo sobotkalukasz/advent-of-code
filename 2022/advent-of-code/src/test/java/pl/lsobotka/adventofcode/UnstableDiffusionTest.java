@@ -18,7 +18,7 @@ class UnstableDiffusionTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("firstStar")
-    public void firstStarTest(final String fileName, final long expected) throws Exception {
+    public void firstStarTest(final String fileName, final long expected) {
         final List<String> input = getFileInput(fileName);
         final UnstableDiffusion diffusion = new UnstableDiffusion(input);
         final long actual = diffusion.countEmptySpaceAfterMoves();
@@ -32,7 +32,7 @@ class UnstableDiffusionTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("secondStar")
-    public void secondStarTest(final String fileName, final long expected) throws Exception {
+    public void secondStarTest(final String fileName, final long expected) {
         final List<String> input = getFileInput(fileName);
         final UnstableDiffusion diffusion = new UnstableDiffusion(input);
         final long actual = diffusion.countMovesToNoAdjacent();
