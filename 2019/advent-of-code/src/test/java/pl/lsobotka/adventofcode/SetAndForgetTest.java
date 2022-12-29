@@ -24,4 +24,17 @@ class SetAndForgetTest extends BaseTest {
         assertEquals(expected, actual);
     }
 
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("SetAndForget", 578918));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    public void secondStarTest(final String fileName, final long expected) {
+        final List<String> input = getFileInput(fileName);
+        final SetAndForget forget = new SetAndForget(input);
+        final long actual = forget.collectTheDust();
+        assertEquals(expected, actual);
+    }
+
 }
