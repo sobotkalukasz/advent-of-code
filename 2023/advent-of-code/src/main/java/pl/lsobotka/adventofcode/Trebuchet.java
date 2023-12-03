@@ -21,11 +21,11 @@ public class Trebuchet {
     }
 
     int sumOfCalibrationValues() {
-        return data.stream().map(row -> extractRowNumber(row, false)).reduce(Integer::sum).orElse(0);
+        return data.stream().map(row -> extractRowNumber(row, false)).reduce(0, Integer::sum);
     }
 
     int sumOfComplexCalibrationValues() {
-        return data.stream().map(row -> extractRowNumber(row, true)).reduce(Integer::sum).orElse(0);
+        return data.stream().map(row -> extractRowNumber(row, true)).reduce(0, Integer::sum);
     }
 
     private int extractRowNumber(final String row, final boolean includeDictionary) {

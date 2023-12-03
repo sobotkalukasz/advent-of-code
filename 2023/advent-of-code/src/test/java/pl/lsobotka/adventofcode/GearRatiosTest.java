@@ -21,7 +21,7 @@ class GearRatiosTest extends BaseTest {
     public void firstStarTest(final String fileName, final int expected) {
         final List<String> input = getFileInput(fileName);
         final GearRatios gearRatios = new GearRatios(input);
-        final int actual = gearRatios.sumOfPEnginePartNumbers();
+        final int actual = gearRatios.sumOfEnginePartNumbers();
         assertEquals(expected, actual);
     }
 
