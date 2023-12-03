@@ -73,6 +73,5 @@ public class CubeConundrum {
         int getPowerOfGame() {
             return cubes.values().stream().reduce(1, (a, b) -> a * b);
         }
-
     }
 }
