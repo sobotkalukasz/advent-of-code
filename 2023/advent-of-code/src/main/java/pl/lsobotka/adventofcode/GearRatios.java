@@ -13,6 +13,9 @@ import java.util.stream.Collectors;
 import pl.lsobotka.adventofcode.utils.Coord;
 import pl.lsobotka.adventofcode.utils.Dir;
 
+/*
+ * https://adventofcode.com/2023/day/3
+ * */
 public class GearRatios {
 
     private final Schema schema;
