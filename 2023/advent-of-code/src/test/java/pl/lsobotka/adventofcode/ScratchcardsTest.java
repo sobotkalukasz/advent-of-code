@@ -24,4 +24,18 @@ class ScratchcardsTest extends BaseTest {
         final int actual = Scratchcards.sumCardPoints();
         assertEquals(expected, actual);
     }
+
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("Scratchcards_example", 30), //
+                Arguments.of("Scratchcards", 6284877));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    public void secondStarTest(final String fileName, final int expected) {
+        final List<String> input = getFileInput(fileName);
+        final Scratchcards Scratchcards = new Scratchcards(input);
+        final int actual = Scratchcards.countCards();
+        assertEquals(expected, actual);
+    }
 }
