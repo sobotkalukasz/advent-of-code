@@ -6,6 +6,9 @@ import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/*
+ * https://adventofcode.com/2023/day/6
+ * */
 public class WaitForIt {
 
     private static final Pattern TIME_PATTERN = Pattern.compile("Time:([0-9\\s]+)");
