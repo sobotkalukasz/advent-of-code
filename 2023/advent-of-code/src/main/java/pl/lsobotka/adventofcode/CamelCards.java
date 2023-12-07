@@ -10,30 +10,51 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class CamelCards {
-    private final List<Hand> hands;
+    private final List<String> input;
 
     public CamelCards(final List<String> input) {
-        hands = input.stream().map(Hand::from).toList();
+        this.input = input;
     }
 
     long winningScore() {
-        final List<Hand> sortedHands = hands.stream().sorted(Hand.comparator).toList();
+        final List<Hand> hands = input.stream().map(Hand::from).sorted(Hand.regularComparator).toList();
+        return countScore(hands);
+    }
 
+    long winningScoreWithJoker() {
+        final List<Hand> hands = input.stream().map(Hand::from).sorted(Hand.jokerComparator).toList();
+        return countScore(hands);
+    }
+
+    private long countScore(final List<Hand> hands) {
         long score = 0;
-        for (int i = 0; i < sortedHands.size(); i++) {
-            score += sortedHands.get(i).bid * (i + 1);
+        for (int i = 0; i < hands.size(); i++) {
+            score += hands.get(i).bid * (i + 1);
         }
 
         return score;
     }
 
-    record Hand(List<Card> cards, HandType type, long bid) {
+    record Hand(List<Card> cards, HandType type, HandType jokerType, long bid) {
         static final Pattern rowPattern = Pattern.compile("([A-Z0-9]{5})\\s(\\d+)");
-        static final Comparator<Hand> comparator = Comparator.comparing(Hand::type, Enum::compareTo)
+        static final Comparator<Hand> regularComparator = Comparator.comparing(Hand::type, Enum::compareTo)
                 .thenComparing(Hand::cards, (c1, c2) -> {
                     int comparisonResult = 0;
                     for (int i = 0; i < c1.size(); i++) {
                         final int compare = c1.get(i).compareTo(c2.get(i));
+                        if (compare != 0) {
+                            comparisonResult = compare;
+                            break;
+                        }
+                    }
+                    return comparisonResult;
+                });
+
+        static final Comparator<Hand> jokerComparator = Comparator.comparing(Hand::jokerType, Enum::compareTo)
+                .thenComparing(Hand::cards, (c1, c2) -> {
+                    int comparisonResult = 0;
+                    for (int i = 0; i < c1.size(); i++) {
+                        final int compare = Card.jokerComparator.compare(c1.get(i), c2.get(i));
                         if (compare != 0) {
                             comparisonResult = compare;
                             break;
@@ -47,14 +68,16 @@ public class CamelCards {
             if (matcher.find()) {
                 final List<Card> cards = matcher.group(1).chars().mapToObj(c -> Card.of((char) c)).toList();
                 final HandType handType = HandType.of(cards);
+                final HandType jokerType = handType.transformWithJoker(cards);
                 final long bid = Long.parseLong(matcher.group(2));
-                return new Hand(cards, handType, bid);
+                return new Hand(cards, handType, jokerType, bid);
             }
             throw new IllegalArgumentException("Unable to create hand from: " + row);
         }
     }
 
     enum Card {
+
         TWO('2', 1), //
         THREE('3', 2), //
         FOUR('4', 3), //
@@ -69,12 +92,18 @@ public class CamelCards {
         K('K', 11), //
         A('A', 12);
 
+        static final Comparator<Card> jokerComparator = Comparator.comparing(Card::getStrength, Integer::compareTo);
+
         final char value;
         final int strength;
 
         Card(char value, int strength) {
             this.value = value;
             this.strength = strength;
+        }
+
+        public int getStrength() {
+            return strength;
         }
 
         static Card of(final char c) {
@@ -109,6 +138,56 @@ public class CamelCards {
                     .filter(t -> t.handPredicate.test(values))
                     .findFirst()
                     .orElseThrow(() -> new IllegalArgumentException("Unable to determine type for hand: " + cards));
+        }
+
+        HandType transformWithJoker(final List<Card> cards) {
+            final long joker = cards.stream().filter(Card.J::equals).count();
+            if (joker == 0) {
+                return this;
+            }
+
+            return switch (this) {
+                case HIGH_CARD -> {
+                    if (joker == 1) {
+                        yield HandType.ONE_PAIR;
+                    }
+                    yield HandType.HIGH_CARD;
+                }
+                case ONE_PAIR -> {
+                    if (joker == 1 || joker == 2) {
+                        yield HandType.THREE;
+                    }
+                    yield ONE_PAIR;
+                }
+                case TWO_PAIR -> {
+                    if (joker == 1) {
+                        yield HandType.FULL_HOUSE;
+                    } else if (joker == 2) {
+                        yield HandType.FOUR;
+                    }
+                    yield FULL_HOUSE;
+                }
+                case THREE -> {
+                    if (joker == 1 || joker == 3) {
+                        yield HandType.FOUR;
+                    }
+                    yield THREE;
+                }
+                case FULL_HOUSE -> {
+                    if (joker == 2 || joker == 3) {
+                        yield HandType.FIVE;
+                    }
+                    yield FULL_HOUSE;
+                }
+                case FOUR -> {
+                    if (joker == 1 || joker == 4) {
+                        yield HandType.FIVE;
+                    }
+                    yield FOUR;
+                }
+                case FIVE -> HandType.FIVE;
+            };
+
         }
 
     }

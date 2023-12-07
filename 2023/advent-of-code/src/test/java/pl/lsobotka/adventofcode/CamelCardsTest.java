@@ -25,4 +25,18 @@ class CamelCardsTest extends BaseTest {
         assertEquals(expected, actual);
     }
 
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("CamelCards_example", 5905), //
+                Arguments.of("CamelCards", 244848487));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    public void secondStarTest(final String fileName, final long expected) {
+        final List<String> input = getFileInput(fileName);
+        final CamelCards camelCards = new CamelCards(input);
+        final long actual = camelCards.winningScoreWithJoker();
+        assertEquals(expected, actual);
+    }
+
 }
