@@ -13,29 +13,61 @@ public class HauntedWasteland {
 
     private final List<Instruction> instructions;
     private final Map<String, Node> nodes;
+    private final Map<String, String> cache;
 
     public HauntedWasteland(final List<String> input) {
         this.instructions = Instruction.list(input.get(0));
         this.nodes = Node.map(input);
+        this.cache = calculateCache(nodes, instructions);
     }
 
-    public int solveIt() {
-
-        String currentNode = START_NODE;
-        int iterationCount = 0;
-
-        while (!currentNode.equals(END_NODE)) {
-            for (Instruction instruction : instructions) {
-                currentNode = nodes.get(currentNode).apply(instruction);
-            }
-            iterationCount++;
-        }
-
+    public long countIterations() {
+        long iterationCount = countIterations(START_NODE, END_NODE);
         return iterationCount * instructions.size();
     }
 
+    public long countSimultaneousIterations() {
+        List<String> actualPositions = nodes.keySet().stream().filter(key -> key.endsWith("A")).toList();
+
+        final Map<String, Long> nodeToEnd = new HashMap<>();
+        for (String node : actualPositions) {
+            long iterationCount = countIterations(node, "Z");
+            nodeToEnd.put(node, iterationCount);
+        }
+
+        final long multipliedIterations = nodeToEnd.values().stream().reduce(1L, (a, b) -> a * b);
+        return multipliedIterations * instructions.size();
+    }
+
+    private long countIterations(final String startNode, final String endNode) {
+        long iterationCount = 0;
+        String currentNode = startNode;
+        while (!currentNode.endsWith(endNode)) {
+            currentNode = cache.get(currentNode);
+            iterationCount++;
+        }
+        return iterationCount;
+    }
+
+    private Map<String, String> calculateCache(Map<String, Node> nodes, final List<Instruction> instructions) {
+        Map<String, String> cache = new HashMap<>();
+        for (String node : nodes.keySet()) {
+            cache.put(node, calculateEndNode(node, instructions));
+        }
+        return cache;
+    }
+
+    private String calculateEndNode(final String startNode, final List<Instruction> instructions) {
+        String currentNode = startNode;
+        for (Instruction instruction : instructions) {
+            currentNode = nodes.get(currentNode).apply(instruction);
+        }
+        return currentNode;
+    }
+
     record Node(String node, String left, String right) {
-        private final static Pattern nodePattern = Pattern.compile("([A-Z]{3})\\s=\\s\\(([A-Z]{3}),\\s([A-Z]{3})\\)");
+        private final static Pattern nodePattern = Pattern.compile(
+                "([A-Z0-9]{3})\\s=\\s\\(([A-Z0-9]{3}),\\s([A-Z0-9]{3})\\)");
 
         static Map<String, Node> map(final List<String> rows) {
             Map<String, Node> nodes = new HashMap<>();

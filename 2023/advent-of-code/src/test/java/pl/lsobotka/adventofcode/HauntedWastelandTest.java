@@ -22,7 +22,21 @@ class HauntedWastelandTest extends BaseTest {
     public void firstStarTest(final String fileName, final long expected) {
         final List<String> input = getFileInput(fileName);
         final HauntedWasteland hauntedWasteland = new HauntedWasteland(input);
-        final long actual = hauntedWasteland.solveIt();
+        final long actual = hauntedWasteland.countIterations();
+        assertEquals(expected, actual);
+    }
+
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("HauntedWasteland_example3", 6), //
+                Arguments.of("HauntedWasteland", 11678319315857L));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    public void secondStarTest(final String fileName, final long expected) {
+        final List<String> input = getFileInput(fileName);
+        final HauntedWasteland hauntedWasteland = new HauntedWasteland(input);
+        final long actual = hauntedWasteland.countSimultaneousIterations();
         assertEquals(expected, actual);
     }
 
