@@ -9,6 +9,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+/*
+ * https://adventofcode.com/2023/day/7
+ * */
 public class CamelCards {
     private final List<String> input;
 

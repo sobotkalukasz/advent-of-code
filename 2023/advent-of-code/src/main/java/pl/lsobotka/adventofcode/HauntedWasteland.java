@@ -6,6 +6,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/*
+ * https://adventofcode.com/2023/day/8
+ * */
 public class HauntedWasteland {
 
     private final static String START_NODE = "AAA";
