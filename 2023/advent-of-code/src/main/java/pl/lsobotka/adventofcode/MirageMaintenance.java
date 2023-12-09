@@ -15,20 +15,29 @@ public class MirageMaintenance {
                 .toList();
     }
 
-    public long solveIt() {
-        return histories.stream().map(History::getPredicatedNumber).reduce(0, Integer::sum);
+    public long sumOfNext() {
+        return histories.stream().map(History::getLastNumber).reduce(0, Integer::sum);
+    }
+
+    public long sumOfPrevious() {
+        return histories.stream().map(History::getPreviousNumber).reduce(0, Integer::sum);
     }
 
     record History(List<List<Integer>> numbers) {
 
         public History(final List<List<Integer>> numbers) {
             this.numbers = numbers;
-            calculateTillZero();
-            predicate();
+            fillTillZero();
+            calculateLast();
+            calculateFirst();
         }
 
-        public int getPredicatedNumber() {
+        public int getLastNumber() {
             return numbers.getFirst().getLast();
+        }
+
+        public int getPreviousNumber() {
+            return numbers.getFirst().getFirst();
         }
 
         static History of(final List<Integer> row) {
@@ -37,7 +46,7 @@ public class MirageMaintenance {
             return new History(numbers);
         }
 
-        private void calculateTillZero() {
+        private void fillTillZero() {
 
             while (!numbers.getLast().stream().allMatch(i -> i == 0)) {
                 final List<Integer> last = numbers.getLast();
@@ -49,7 +58,7 @@ public class MirageMaintenance {
             }
         }
 
-        private void predicate() {
+        private void calculateLast() {
             final int lastIndex = numbers.size() - 1;
 
             int previous = 0;
@@ -58,6 +67,18 @@ public class MirageMaintenance {
                     previous = numbers.get(i).getLast() + previous;
                 }
                 numbers.get(i).add(previous);
+            }
+        }
+
+        private void calculateFirst() {
+            final int lastIndex = numbers.size() - 1;
+
+            int previous = 0;
+            for (int i = lastIndex; i >= 0; i--) {
+                if (i != lastIndex) {
+                    previous = numbers.get(i).getFirst() - previous;
+                }
+                numbers.get(i).addFirst(previous);
             }
         }
 

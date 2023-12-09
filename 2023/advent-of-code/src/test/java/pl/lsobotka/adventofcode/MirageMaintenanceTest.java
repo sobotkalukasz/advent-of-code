@@ -21,7 +21,21 @@ class MirageMaintenanceTest extends BaseTest {
     public void firstStarTest(final String fileName, final long expected) {
         final List<String> input = getFileInput(fileName);
         final MirageMaintenance mirageMaintenance = new MirageMaintenance(input);
-        final long actual = mirageMaintenance.solveIt();
+        final long actual = mirageMaintenance.sumOfNext();
+        assertEquals(expected, actual);
+    }
+
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("MirageMaintenance_example_2", 5), //
+                Arguments.of("MirageMaintenance", 1152));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    public void secondStarTest(final String fileName, final long expected) {
+        final List<String> input = getFileInput(fileName);
+        final MirageMaintenance mirageMaintenance = new MirageMaintenance(input);
+        final long actual = mirageMaintenance.sumOfPrevious();
         assertEquals(expected, actual);
     }
 
