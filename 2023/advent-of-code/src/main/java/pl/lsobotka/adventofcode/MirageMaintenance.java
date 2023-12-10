@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/*
+ * https://adventofcode.com/2023/day/9
+ * */
 public class MirageMaintenance {
 
     private final List<History> histories;
