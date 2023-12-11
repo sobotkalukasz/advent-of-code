@@ -25,4 +25,19 @@ class CosmicExpansionTest extends BaseTest {
         assertEquals(expected, actual);
     }
 
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("CosmicExpansion_example", 10, 1030), //
+                Arguments.of("CosmicExpansion_example", 100, 8410), //
+                Arguments.of("CosmicExpansion", 1_000_000, 779_032_247_216L));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    public void secondStarTest(final String fileName, final int age, final long expected) {
+        final List<String> input = getFileInput(fileName);
+        final CosmicExpansion cosmicExpansion = new CosmicExpansion(input);
+        final long actual = cosmicExpansion.sumOfDistancesWithUniverseAge(age);
+        assertEquals(expected, actual);
+    }
+
 }

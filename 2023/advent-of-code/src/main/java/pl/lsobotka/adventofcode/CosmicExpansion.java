@@ -5,29 +5,36 @@ import java.util.function.Function;
 
 import pl.lsobotka.adventofcode.utils.Coord;
 
+/*
+ * https://adventofcode.com/2023/day/11
+ * */
 public class CosmicExpansion {
 
-    private final GalaxyHolder galaxies;
+    private final Universe universe;
 
     public CosmicExpansion(final List<String> input) {
-        galaxies = GalaxyHolder.from(input);
+        universe = Universe.from(input);
     }
 
     long sumOfDistances() {
-        final GalaxyHolder expanded = galaxies.expand();
-        final Set<GalaxyDistance> distances = expanded.getGalaxyDistances();
-        return distances.stream().map(GalaxyDistance::distance).reduce(0, Integer::sum);
+        return sumOfDistancesWithUniverseAge(0);
     }
 
-    record GalaxyHolder(Map<Coord, Galaxy> galaxies, int row, int col) {
+    long sumOfDistancesWithUniverseAge(final int age) {
+        final Universe expanded = universe.expand(age);
+        final Set<GalaxyDistance> distances = expanded.getGalaxyDistances();
+        return distances.stream().map(GalaxyDistance::distance).reduce(0L, Long::sum);
+    }
 
-        static GalaxyHolder of(Map<Coord, Galaxy> galaxies) {
+    record Universe(Map<Coord, Galaxy> galaxies, int row, int col) {
+
+        static Universe of(Map<Coord, Galaxy> galaxies) {
             int row = galaxies.keySet().stream().map(Coord::row).max(Comparator.naturalOrder()).orElse(0);
             int col = galaxies.keySet().stream().map(Coord::col).max(Comparator.naturalOrder()).orElse(0);
-            return new GalaxyHolder(galaxies, row, col);
+            return new Universe(galaxies, row, col);
         }
 
-        static GalaxyHolder from(final List<String> input) {
+        static Universe from(final List<String> input) {
             final HashMap<Coord, Galaxy> galaxies = new HashMap<>();
             long idCounter = 0;
 
@@ -41,23 +48,27 @@ public class CosmicExpansion {
                 }
             }
 
-            return GalaxyHolder.of(galaxies);
+            return Universe.of(galaxies);
         }
 
-        GalaxyHolder expand() {
+        Universe expand(int age) {
             final Map<Coord, Galaxy> expandedGalaxies = new HashMap<>();
-            final Map<Integer, Integer> rowOffsets = getExpandValue(Coord::row, row);
-            final Map<Integer, Integer> colOffsets = getExpandValue(Coord::col, col);
+            final Map<Integer, Integer> rowFactors = calculateExpandFactor(Coord::row, row);
+            final Map<Integer, Integer> colFactors = calculateExpandFactor(Coord::col, col);
 
             galaxies.keySet().forEach(coord -> {
-                final Galaxy galaxy = galaxies.get(coord)
-                        .expand(rowOffsets.get(coord.row()), colOffsets.get(coord.col()));
-                expandedGalaxies.put(galaxy.coord, galaxy);
+                final int rowOffset = rowFactors.get(coord.row());
+                final int colOffset = colFactors.get(coord.col());
+                final Galaxy galaxy = galaxies.get(coord);
+                final Galaxy expanded = galaxy.expand(Math.abs(age * rowOffset - rowOffset),
+                        Math.abs(age * colOffset - colOffset));
+                expandedGalaxies.put(expanded.coord, expanded);
             });
-            return GalaxyHolder.of(expandedGalaxies);
+            return Universe.of(expandedGalaxies);
         }
 
-        private Map<Integer, Integer> getExpandValue(final Function<Coord, Integer> function, final int maxValue) {
+        private Map<Integer, Integer> calculateExpandFactor(final Function<Coord, Integer> function,
+                final int maxValue) {
             Map<Integer, Integer> expandBy = new HashMap<>();
             int offset = 0;
             for (int i = 0; i <= maxValue; i++) {
@@ -79,7 +90,7 @@ public class CosmicExpansion {
                 final Galaxy from = galaxies.get(coords.get(i));
                 for (int j = i + 1; j < coords.size(); j++) {
                     final Galaxy to = galaxies.get(coords.get(j));
-                    final int distance = findLessStepsToGalaxy2(from.coord, to.coord);
+                    final int distance = findLessStepsToGalaxy(from.coord, to.coord);
 
                     distances.add(new GalaxyDistance(from.id, to.id, distance));
                 }
@@ -87,7 +98,7 @@ public class CosmicExpansion {
             return distances;
         }
 
-        private int findLessStepsToGalaxy2(final Coord from, final Coord to) {
+        private int findLessStepsToGalaxy(final Coord from, final Coord to) {
             return Math.abs(from.row() - to.row()) + Math.abs(from.col() - to.col());
         }
 
@@ -100,7 +111,7 @@ public class CosmicExpansion {
         }
     }
 
-    record GalaxyDistance(long from, long to, int distance) {
+    record GalaxyDistance(long from, long to, long distance) {
     }
 
 }
