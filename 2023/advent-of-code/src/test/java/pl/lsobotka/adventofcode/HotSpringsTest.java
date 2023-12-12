@@ -24,4 +24,18 @@ class HotSpringsTest extends BaseTest {
         final long actual = hotSprings.sumDifferentArrangements();
         assertEquals(expected, actual);
     }
+
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("HotSprings_example", 5, 525152), //
+                Arguments.of("HotSprings", 5, 1909291258644L));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    public void secondStarTest(final String fileName, final int times, final long expected) {
+        final List<String> input = getFileInput(fileName);
+        final HotSprings hotSprings = new HotSprings(input);
+        final long actual = hotSprings.sumUnfoldedDifferentArrangements(times);
+        assertEquals(expected, actual);
+    }
 }

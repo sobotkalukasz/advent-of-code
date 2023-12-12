@@ -1,9 +1,9 @@
 package pl.lsobotka.adventofcode;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Queue;
+import java.util.Map;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -13,77 +13,100 @@ import java.util.regex.Pattern;
  * */
 public class HotSprings {
 
-    private final List<ConditionRecord> conditionRecords;
+    private final List<String> input;
 
     public HotSprings(final List<String> input) {
-        this.conditionRecords = ConditionRecord.from(input);
+        this.input = input;
     }
 
     long sumDifferentArrangements() {
-        return conditionRecords.stream().map(ConditionRecord::countPossibleArrangement).reduce(0L, Long::sum);
+        return sumUnfoldedDifferentArrangements(1);
     }
 
-    record ConditionRecord(String condition, Pattern pattern) {
+    long sumUnfoldedDifferentArrangements(final int unfoldTimes) {
+        final List<ConditionRecord> conditionRecords = ConditionRecord.from(input, unfoldTimes);
+        return conditionRecords.stream().map(ConditionRecord::possibleArrangement).reduce(0L, Long::sum);
+    }
+
+    record ConditionRecord(String condition, List<Integer> records) {
+
         private static final Pattern rowPattern = Pattern.compile("([{.?#}]+) ([0-9,]+)");
         private static final Pattern recordPattern = Pattern.compile("([0-9]+)");
+        private static final char OPERATIONAL = '.';
+        private static final char DAMAGED = '#';
+        private static final char UNKNOWN = '?';
 
-        static List<ConditionRecord> from(List<String> input) {
+        static List<ConditionRecord> from(final List<String> input, final int unfoldTimes) {
 
             final List<ConditionRecord> conditionRecords = new ArrayList<>();
 
             for (String row : input) {
                 final Matcher matcher = rowPattern.matcher(row);
                 if (matcher.find()) {
-                    final String condition = matcher.group(1);
-                    final Matcher recordMatcher = recordPattern.matcher(matcher.group(2));
+                    final String condition = matcher.group(1).concat(String.valueOf(UNKNOWN)).repeat(unfoldTimes);
+                    final String expandedCondition = condition.substring(0, condition.length() - 1);
+
+                    final Matcher recordMatcher = recordPattern.matcher(
+                            matcher.group(2).concat(" ").repeat(unfoldTimes));
                     final List<Integer> records = recordMatcher.results()
                             .map(MatchResult::group)
                             .map(Integer::parseInt)
                             .toList();
-                    conditionRecords.add(new ConditionRecord(condition, buildPattern(records)));
+
+                    conditionRecords.add(new ConditionRecord(expandedCondition, records));
                 }
             }
 
             return conditionRecords;
         }
 
-        static private Pattern buildPattern(final List<Integer> records) {
-            final StringBuilder patternBuilder = new StringBuilder();
-            patternBuilder.append("\\.*");
-            for (int i = 0; i < records.size(); i++) {
-                patternBuilder.append("[#]{").append(records.get(i)).append("}");
-                if (i == records.size() - 1) {
-                    patternBuilder.append("\\.*");
-                } else {
-                    patternBuilder.append("\\.+");
-                }
-            }
-            return Pattern.compile(patternBuilder.toString());
+        long possibleArrangement() {
+            return possibleArrangement(new HashMap<>(), condition, records);
         }
 
-        long countPossibleArrangement() {
-            final Queue<String> possible = new ArrayDeque<>();
-            possible.add(condition);
+        long possibleArrangement(final Map<CacheKey, Long> cache, String condition, List<Integer> records) {
+            final CacheKey key = new CacheKey(condition, records);
 
-            for (int i = 0; i < condition.length(); i++) {
-                final List<String> next = new ArrayList<>();
-                while (!possible.isEmpty()) {
-                    final String toValidate = possible.poll();
-                    if (toValidate.charAt(i) == '?') {
-                        StringBuilder string = new StringBuilder(toValidate);
+            if (cache.containsKey(key)) {
+                return cache.get(key);
+            } else
+                if (condition.isBlank()) {
+                return records.isEmpty() ? 1 : 0;
+            }
 
-                        string.setCharAt(i, '.');
-                        next.add(string.toString());
+            long arrangements = 0;
+            final char first = condition.charAt(0);
 
-                        string.setCharAt(i, '#');
-                        next.add(string.toString());
-                    } else {
-                        next.add(toValidate);
+            if (first == UNKNOWN) {
+                arrangements = possibleArrangement(cache, OPERATIONAL + condition.substring(1), records);
+                arrangements += possibleArrangement(cache, DAMAGED + condition.substring(1), records);
+            } else if (first == OPERATIONAL) {
+                arrangements = possibleArrangement(cache, condition.substring(1), records);
+            } else if (first == DAMAGED && !records.isEmpty()) {
+                final int damagedRecord = records.getFirst();
+                if (isDamagedRecordPossible(damagedRecord, condition)) {
+                    final List<Integer> leftRecords = records.subList(1, records.size());
+                    if (damagedRecord == condition.length()) {
+                        arrangements = leftRecords.isEmpty() ? 1 : 0;
+                    } else if (condition.charAt(damagedRecord) == OPERATIONAL) {
+                        arrangements = possibleArrangement(cache, condition.substring(damagedRecord), leftRecords);
+                    } else if (condition.charAt(damagedRecord) == UNKNOWN) {
+                        arrangements = possibleArrangement(cache, OPERATIONAL + condition.substring(damagedRecord + 1),
+                                leftRecords);
                     }
                 }
-                possible.addAll(next);
             }
-            return possible.stream().filter(pattern.asMatchPredicate()).count();
+            cache.put(key, arrangements);
+            return arrangements;
         }
+
+        private boolean isDamagedRecordPossible(final int length, final String condition) {
+            return length <= condition.length() && condition.substring(0, length)
+                    .chars()
+                    .noneMatch(c -> c == OPERATIONAL);
+        }
+    }
+
+    record CacheKey(String condition, List<Integer> records) {
     }
 }
