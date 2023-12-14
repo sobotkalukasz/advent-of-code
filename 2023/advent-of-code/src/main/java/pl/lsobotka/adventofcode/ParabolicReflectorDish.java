@@ -13,7 +13,7 @@ import pl.lsobotka.adventofcode.utils.Coord;
 import pl.lsobotka.adventofcode.utils.Dir;
 
 /*
- * https://adventofcode.com/2023/day/13
+ * https://adventofcode.com/2023/day/14
  * */
 public class ParabolicReflectorDish {
 
