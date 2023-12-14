@@ -72,39 +72,41 @@ public class ParabolicReflectorDish {
         }
 
         Dish tilt() {
-            return tilt(this, Dir.UP, Comparator.comparingInt(Coord::row).thenComparing(Coord::col));
+            final Set<Coord> tiltedRocks = tilt(this.roundRocks, Dir.UP,
+                    Comparator.comparingInt(Coord::row).thenComparing(Coord::col));
+            return new Dish(tiltedRocks, cubeRocks, max);
         }
 
         Dish tiltCycles(long cycle) {
             final Map<Set<Coord>, Long> cache = new HashMap<>();
-            Dish tilted = this;
+            Set<Coord> tilted = this.roundRocks;
 
             while (cycle-- > 0) {
-                Dish temp = tilted;
+                Set<Coord> temp = tilted;
                 temp = tilt(temp, Dir.UP, Comparator.comparingInt(Coord::row));
                 temp = tilt(temp, Dir.LEFT, Comparator.comparingInt(Coord::col));
                 temp = tilt(temp, Dir.DOWN, Comparator.comparingInt(Coord::row).reversed());
                 temp = tilt(temp, Dir.RIGHT, Comparator.comparingInt(Coord::col).reversed());
                 tilted = temp;
 
-                if (cache.containsKey(tilted.roundRocks)) {
-                    final long previous = cache.get(tilted.roundRocks);
+                if (cache.containsKey(tilted)) {
+                    final long previous = cache.get(tilted);
                     final long diff = previous - cycle;
                     if (diff < cycle) {
                         cycle = cycle % diff;
                     }
                 } else {
-                    cache.put(tilted.roundRocks, cycle);
+                    cache.put(tilted, cycle);
                 }
             }
 
-            return tilted;
+            return new Dish(tilted, cubeRocks, max);
         }
 
-        private Dish tilt(final Dish dish, Dir dir, Comparator<Coord> comparator) {
-            final Set<Coord> cubeRocks = dish.cubeRocks;
+        private Set<Coord> tilt(final Set<Coord> roundRocks, Dir dir, Comparator<Coord> comparator) {
+            final Set<Coord> cubeRocks = this.cubeRocks;
             final Set<Coord> tiltedRocks = new HashSet<>();
-            final List<Coord> sortedRocks = dish.roundRocks.stream().sorted(comparator).toList();
+            final List<Coord> sortedRocks = roundRocks.stream().sorted(comparator).toList();
 
             for (Coord rock : sortedRocks) {
                 Coord actual = rock;
@@ -114,7 +116,7 @@ public class ParabolicReflectorDish {
                 tiltedRocks.add(actual);
             }
 
-            return new Dish(tiltedRocks, cubeRocks, max);
+            return tiltedRocks;
         }
 
         private boolean canMove(final Coord coord, final Dir dir, final Set<Coord> cubeRocks,
