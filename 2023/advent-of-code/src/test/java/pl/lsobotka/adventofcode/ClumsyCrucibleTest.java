@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class ClumsyCrucibleTest extends BaseTest {
 
     private static Stream<Arguments> firstStar() {
-        return Stream.of(Arguments.of("ClumsyCrucible_example", 102), //
+        return Stream.of(Arguments.of("ClumsyCrucible_example_1", 102), //
                 Arguments.of("ClumsyCrucible", 791));
     }
 
@@ -22,6 +22,21 @@ class ClumsyCrucibleTest extends BaseTest {
         final List<String> input = getFileInput(fileName);
         final ClumsyCrucible clumsyCrucible = new ClumsyCrucible(input);
         final long actual = clumsyCrucible.minimalHeatLost();
+        assertEquals(expected, actual);
+    }
+
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("ClumsyCrucible_example_1", 94), //
+                Arguments.of("ClumsyCrucible_example_2", 71), //
+                Arguments.of("ClumsyCrucible", 900));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    void secondStarTest(final String fileName, final long expected) {
+        final List<String> input = getFileInput(fileName);
+        final ClumsyCrucible clumsyCrucible = new ClumsyCrucible(input);
+        final long actual = clumsyCrucible.minimalHeatLostWithComplexDirections();
         assertEquals(expected, actual);
     }
 
