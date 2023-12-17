@@ -11,12 +11,16 @@ import pl.lsobotka.adventofcode.utils.Dir;
  * */
 public class ClumsyCrucible {
     private final Map<Coord, Integer> heatMap;
+    private final Coord start;
     private final Coord finish;
 
     public ClumsyCrucible(final List<String> input) {
         this.heatMap = new HashMap<>();
+
         int maxRow = input.size() - 1;
         int maxCol = input.get(0).length() - 1;
+
+        this.start = Coord.of(0, 0);
         this.finish = Coord.of(maxRow, maxCol);
 
         for (int row = 0; row < input.size(); row++) {
@@ -37,13 +41,10 @@ public class ClumsyCrucible {
     }
 
     long calculateMinimalHeatLost(final Predicate<LavaPath> forwardPredicate, final Predicate<LavaPath> turnPredicate) {
-        final Coord start = Coord.of(0, 0);
-
         final Queue<LavaPath> paths = new PriorityQueue<>();
         paths.add(new LavaPath(start, Dir.RIGHT, 1, 0));
 
-        final Map<Coord, Map<Integer, Long>> visited = new HashMap<>();
-        visited.put(start, new HashMap<>());
+        final Map<CacheKey, Long> visited = new HashMap<>();
 
         long best = Long.MAX_VALUE;
 
@@ -62,14 +63,11 @@ public class ClumsyCrucible {
                     if (heatMap.containsKey(nextPos)) {
                         final int nextDirCount = nextDir == current.lastDir ? current.dirCount + 1 : 1;
                         final long nextHeatLost = current.heatLost + heatMap.get(nextPos);
-                        final int nextDirHash = nextDir.hashCode() + nextDirCount;
+                        final CacheKey cacheKey = new CacheKey(nextPos, nextDir, nextDirCount);
 
-                        if (!visited.containsKey(nextPos) || !visited.get(nextPos).containsKey(nextDirHash)
-                                || visited.get(nextPos).get(nextDirHash) > nextHeatLost) {
+                        if (!visited.containsKey(cacheKey) || visited.get(cacheKey) > nextHeatLost) {
                             paths.add(new LavaPath(nextPos, nextDir, nextDirCount, nextHeatLost));
-                            final Map<Integer, Long> dirMap = visited.getOrDefault(nextPos, new HashMap<>());
-                            dirMap.put(nextDirHash, nextHeatLost);
-                            visited.put(nextPos, dirMap);
+                            visited.put(cacheKey, nextHeatLost);
                         }
                     }
                 }
@@ -101,5 +99,8 @@ public class ClumsyCrucible {
         public int compareTo(LavaPath o) {
             return Comparator.comparing(LavaPath::heatLost).compare(this, o);
         }
+    }
+
+    record CacheKey(Coord coord, Dir dir, int count) {
     }
 }
