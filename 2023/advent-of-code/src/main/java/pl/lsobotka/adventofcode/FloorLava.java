@@ -13,6 +13,9 @@ import java.util.Set;
 import pl.lsobotka.adventofcode.utils.Coord;
 import pl.lsobotka.adventofcode.utils.Dir;
 
+/*
+ * https://adventofcode.com/2023/day/16
+ * */
 public class FloorLava {
 
     private final Cave cave;
