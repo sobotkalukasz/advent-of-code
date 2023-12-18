@@ -40,4 +40,9 @@ public record Coord(int row, int col) {
     public List<Coord> getAdjacent(final List<Dir> directions) {
         return directions.stream().map(this::getAdjacent).collect(Collectors.toList());
     }
+
+    public boolean isInside(final Coord topLeft, Coord bottomRight) {
+        return this.row >= topLeft.row() && this.row <= bottomRight.row() && this.col >= topLeft.col()
+                && this.col <= bottomRight.col();
+    }
 }
