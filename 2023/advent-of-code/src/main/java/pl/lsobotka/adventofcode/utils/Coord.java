@@ -37,12 +37,16 @@ public record Coord(int row, int col) {
         };
     }
 
-    public List<Coord> getAdjacent(final List<Dir> directions) {
-        return directions.stream().map(this::getAdjacent).collect(Collectors.toList());
+    public Coord getAdjacent(final Dir dir, int diff) {
+        return switch (dir) {
+            case UP -> Coord.of(this.row - diff, this.col);
+            case DOWN -> Coord.of(this.row + diff, this.col);
+            case LEFT -> Coord.of(this.row, this.col - diff);
+            case RIGHT -> Coord.of(this.row, this.col + diff);
+        };
     }
 
-    public boolean isInside(final Coord topLeft, Coord bottomRight) {
-        return this.row >= topLeft.row() && this.row <= bottomRight.row() && this.col >= topLeft.col()
-                && this.col <= bottomRight.col();
+    public List<Coord> getAdjacent(final List<Dir> directions) {
+        return directions.stream().map(this::getAdjacent).collect(Collectors.toList());
     }
 }

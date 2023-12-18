@@ -1,11 +1,7 @@
 package pl.lsobotka.adventofcode;
 
 import java.util.ArrayList;
-import java.util.Deque;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,13 +13,20 @@ import pl.lsobotka.adventofcode.utils.Dir;
  * */
 public class LavaductLagoon {
 
-    private final List<Instruction> instructions;
+    private final List<String> input;
 
     public LavaductLagoon(final List<String> input) {
-        this.instructions = Instruction.instructionsFrom(input);
+        this.input = input;
     }
 
     long lagoonSize() {
+        final List<Instruction> instructions = Instruction.simpleInstructions(input);
+        final DigPlan plan = DigPlan.from(instructions);
+        return plan.digOut();
+    }
+
+    long extendedLagoonSize() {
+        final List<Instruction> instructions = Instruction.hexDecimalInstructions(input);
         final DigPlan plan = DigPlan.from(instructions);
         return plan.digOut();
     }
@@ -31,7 +34,7 @@ public class LavaductLagoon {
     record Instruction(Dir dir, int length) {
         private static final Pattern DIG_PATTERN = Pattern.compile("([LRUD]) (\\d+) \\(([#a-f0-9]{7})\\)");
 
-        static List<Instruction> instructionsFrom(final List<String> input) {
+        static List<Instruction> simpleInstructions(final List<String> input) {
             final List<Instruction> instructions = new ArrayList<>();
             for (String row : input) {
                 final Matcher matcher = DIG_PATTERN.matcher(row);
@@ -47,85 +50,71 @@ public class LavaductLagoon {
             return instructions;
         }
 
+        static List<Instruction> hexDecimalInstructions(final List<String> input) {
+            final List<Instruction> instructions = new ArrayList<>();
+            for (String row : input) {
+                final Matcher matcher = DIG_PATTERN.matcher(row);
+                if (matcher.find()) {
+                    final String group = matcher.group(3);
+                    final Dir dir = Instruction.ofDir(group.substring(group.length() - 1));
+                    final int length = Integer.parseInt(group.substring(1, group.length() - 1), 16);
+                    instructions.add(new Instruction(dir, length));
+                } else {
+                    throw new IllegalArgumentException("Unknown instruction string: " + row);
+                }
+            }
+
+            return instructions;
+        }
+
         static Dir ofDir(final String symbol) {
             return switch (symbol) {
-                case "L" -> Dir.LEFT;
-                case "R" -> Dir.RIGHT;
-                case "U" -> Dir.UP;
-                case "D" -> Dir.DOWN;
+                case "L", "2" -> Dir.LEFT;
+                case "R", "0" -> Dir.RIGHT;
+                case "U", "3" -> Dir.UP;
+                case "D", "1" -> Dir.DOWN;
                 default -> throw new IllegalArgumentException("Unknown symbol: " + symbol);
             };
         }
     }
 
-    record DigPlan(Set<Coord> trench) {
+    record DigPlan(List<Coord> corners, long borderArea) {
 
         static DigPlan from(final List<Instruction> instructions) {
-            final Set<Coord> trench = new HashSet<>();
+            final List<Coord> corners = new ArrayList<>();
+            long borderArea = 0;
 
             Coord actual = Coord.of(0, 0);
             for (Instruction ins : instructions) {
-                for (int i = 0; i < ins.length; i++) {
-                    final Coord next = actual.getAdjacent(ins.dir);
-                    trench.add(next);
-                    actual = next;
-                }
+                actual = actual.getAdjacent(ins.dir, ins.length);
+                corners.add(actual);
+                borderArea += ins.length;
             }
 
-            return new DigPlan(trench);
+            return new DigPlan(corners, borderArea);
         }
 
         long digOut() {
-            final int minRow = trench.stream().map(Coord::row).reduce(Integer.MAX_VALUE, Integer::min);
-            final int maxRow = trench.stream().map(Coord::row).reduce(Integer.MIN_VALUE, Integer::max);
-            final int minCol = trench.stream().map(Coord::col).reduce(Integer.MAX_VALUE, Integer::min);
-            final int maxCol = trench.stream().map(Coord::col).reduce(Integer.MIN_VALUE, Integer::max);
+            final long insideArea = calculateInsideArea();
 
-            final Coord min = Coord.of(minRow, minCol);
-            final Coord max = Coord.of(maxRow, maxCol);
+            // Pick's theorem
+            return insideArea + borderArea / 2 + 1;
+        }
 
-            final Set<Coord> inside = new HashSet<>();
-            final Set<Coord> outside = new HashSet<>();
-
-            for (int row = minRow; row <= maxRow && inside.isEmpty(); row++) {
-                for (int col = minCol; col <= maxCol && inside.isEmpty(); col++) {
-                    final Coord start = Coord.of(row, col);
-                    if (trench.contains(start) || outside.contains(start)) {
-                        continue;
-                    }
-
-                    final Deque<Coord> queue = new LinkedList<>(List.of(start));
-                    final Set<Coord> visited = new HashSet<>();
-
-                    while (!queue.isEmpty()) {
-                        final Coord actual = queue.removeLast();
-                        if (outside.contains(actual)) {
-                            outside.addAll(visited);
-                            outside.addAll(queue);
-                            visited.clear();
-                            queue.clear();
-                        } else {
-                            final Set<Coord> adjacent = actual.getDirectAdjacent();
-                            adjacent.removeIf(trench::contains);
-                            adjacent.removeIf(visited::contains);
-
-                            final boolean allInsideMap = adjacent.stream().allMatch(c -> c.isInside(min, max));
-                            if (allInsideMap) {
-                                visited.add(actual);
-                                queue.addAll(adjacent);
-                            } else {
-                                outside.addAll(visited);
-                                outside.addAll(queue);
-                                visited.clear();
-                                queue.clear();
-                            }
-
-                        }
-                    }
-                    inside.addAll(visited);
+        // Shoelace formula
+        private long calculateInsideArea() {
+            long inside = 0;
+            for (int i = 0; i < corners.size(); i++) {
+                final Coord from;
+                if (i == 0) {
+                    from = corners.get(corners.size() - 1);
+                } else {
+                    from = corners.get(i - 1);
                 }
+                final Coord to = corners.get(i);
+                inside += (long) from.col() * to.row() - (long) from.row() * to.col();
             }
-            return (long) trench().size() + (long) inside.size();
+            return inside / 2;
         }
     }
 

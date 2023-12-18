@@ -23,4 +23,18 @@ class LavaductLagoonTest extends BaseTest {
         final long actual = lavaductLagoon.lagoonSize();
         assertEquals(expected, actual);
     }
+
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("LavaductLagoon_example", 952_408_144_115L), //
+                Arguments.of("LavaductLagoon", 250_022_188_522_074L));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    void secondStarTest(final String fileName, final long expected) {
+        final List<String> input = getFileInput(fileName);
+        final LavaductLagoon lavaductLagoon = new LavaductLagoon(input);
+        final long actual = lavaductLagoon.extendedLagoonSize();
+        assertEquals(expected, actual);
+    }
 }
