@@ -26,8 +26,8 @@ class AplentyTest extends BaseTest {
     }
 
     private static Stream<Arguments> secondStar() {
-        return Stream.of(Arguments.of("Aplenty_example", -1), //
-                Arguments.of("Aplenty", -1));
+        return Stream.of(Arguments.of("Aplenty_example", 167_409_079_868_000L), //
+                Arguments.of("Aplenty", 130_745_440_937_650L));
     }
 
     @ParameterizedTest
@@ -35,7 +35,7 @@ class AplentyTest extends BaseTest {
     void secondStarTest(final String fileName, final long expected) {
         final List<String> input = getFileInput(fileName);
         final Aplenty aplenty = new Aplenty(input);
-        final long actual = aplenty.solvePart2();
+        final long actual = aplenty.countAcceptedPermutations();
         assertEquals(expected, actual);
     }
 

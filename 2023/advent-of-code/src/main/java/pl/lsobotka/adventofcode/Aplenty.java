@@ -8,11 +8,16 @@ import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 
 /*
  * https://adventofcode.com/2023/day/19
  * */
 public class Aplenty {
+
+    private static final String START = "in";
+    private static final String ACCEPTED = "A";
+    private static final String REJECTED = "R";
 
     private final Map<String, Workflow> workflows;
     private final List<Rating> ratings;
@@ -23,18 +28,17 @@ public class Aplenty {
     }
 
     long sumAcceptedRatings() {
-        final String startingWorkflow = "in";
         final List<Rating> accepted = new ArrayList<>();
 
         for (Rating rating : ratings) {
-            String workflowName = startingWorkflow;
+            String workflowName = START;
 
-            while (!workflowName.equals("A") && !workflowName.equals("R")) {
+            while (!workflowName.equals(ACCEPTED) && !workflowName.equals(REJECTED)) {
                 final Workflow actual = workflows.get(workflowName);
                 workflowName = actual.process(rating);
             }
 
-            if (workflowName.equals("A")) {
+            if (workflowName.equals(ACCEPTED)) {
                 accepted.add(rating);
             }
         }
@@ -42,8 +46,35 @@ public class Aplenty {
         return accepted.stream().map(Rating::totalValue).reduce(0L, Long::sum);
     }
 
-    long solvePart2() {
-        return 0;
+    long countAcceptedPermutations() {
+        long permutations = 0;
+        final List<Path> paths = new ArrayList<>(List.of(Path.start()));
+
+        while (!paths.isEmpty()) {
+            final Path path = paths.removeLast();
+            if (path.actual.equals(ACCEPTED) || path.actual.equals(REJECTED)) {
+                if (path.actual.equals(ACCEPTED)) {
+                    permutations += path.permutations();
+                }
+                continue;
+            }
+
+            final Map<String, Range> ranges = new HashMap<>();
+            for (Operation op : workflows.get(path.actual).operations) {
+                final Map<String, Range> actualRanges = new HashMap<>(ranges);
+                final Range commonPassRange = actualRanges.getOrDefault(op.partName, Range.def())
+                        .commonRange(op.toPass());
+                actualRanges.put(op.partName, commonPassRange);
+
+                paths.add(path.next(op.target, actualRanges));
+
+                final Range commonFailureRange = ranges.getOrDefault(op.partName, Range.def())
+                        .commonRange(op.toFailure());
+                ranges.put(op.partName, commonFailureRange);
+            }
+        }
+
+        return permutations;
     }
 
     record Workflow(String name, List<Operation> operations) {
@@ -78,7 +109,7 @@ public class Aplenty {
         }
     }
 
-    record Operation(String partName, Predicate<Long> predicate, String target) {
+    record Operation(String partName, Predicate<Long> predicate, long value, String target) {
         private static final Pattern comparePattern = Pattern.compile("([a-z]+)([<>])(\\d+):([A-z]+)");
 
         static Operation from(String rawOperation) {
@@ -97,9 +128,9 @@ public class Aplenty {
                 } else {
                     test = i -> i < value;
                 }
-                operation = new Operation(partName, test, target);
+                operation = new Operation(partName, test, value, target);
             } else {
-                operation = new Operation("", i -> true, rawOperation);
+                operation = new Operation("", i -> true, -1, rawOperation);
             }
 
             return operation;
@@ -107,6 +138,26 @@ public class Aplenty {
 
         String determineTarget(long value) {
             return predicate.test(value) ? target : "";
+        }
+
+        Range toPass() {
+            if (value == -1) {
+                return Range.def();
+            } else if (predicate.test(value + 1)) {
+                return new Range(value + 1, 4000);
+            } else {
+                return new Range(1, value - 1);
+            }
+        }
+
+        Range toFailure() {
+            if (value == -1) {
+                return Range.def();
+            } else if (predicate.test(value + 1)) {
+                return new Range(1, value);
+            } else {
+                return new Range(value, 4000);
+            }
         }
     }
 
@@ -132,6 +183,52 @@ public class Aplenty {
 
         long totalValue() {
             return ratings.values().stream().reduce(0L, Long::sum);
+        }
+    }
+
+    record Path(String actual, List<String> visited, Map<String, Range> ranges) {
+
+        static Path start() {
+            return new Path("in", new ArrayList<>(),
+                    Map.of("x", Range.def(), "m", Range.def(), "a", Range.def(), "s", Range.def()));
+        }
+
+        Path next(final String next, final Map<String, Range> nextRanges) {
+            final List<String> nextVisited = new ArrayList<>(visited);
+            nextVisited.add(actual);
+
+            final Map<String, Range> commonRanges = new HashMap<>(ranges);
+            for (var entry : commonRanges.entrySet()) {
+                final Range common = entry.getValue().commonRange(nextRanges.get(entry.getKey()));
+                commonRanges.put(entry.getKey(), common);
+            }
+            return new Path(next, nextVisited, commonRanges);
+        }
+
+        long permutations() {
+            return ranges.values().stream().map(Range::diff).reduce(1L, (a, b) -> a * b);
+        }
+    }
+
+    record Range(long from, long to) {
+        static Range def() {
+            return new Range(1, 4000);
+        }
+
+        boolean in(final long value) {
+            return from <= value && value <= to;
+        }
+
+        long diff() {
+            return to - from + 1;
+        }
+
+        Range commonRange(final Range other) {
+            if (other == null) {
+                return this;
+            }
+            final List<Long> common = LongStream.range(from, to + 1).boxed().filter(other::in).toList();
+            return new Range(common.getFirst(), common.getLast());
         }
     }
 
