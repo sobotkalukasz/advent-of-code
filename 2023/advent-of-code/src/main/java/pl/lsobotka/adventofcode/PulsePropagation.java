@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,6 +45,51 @@ public class PulsePropagation {
         }
 
         return lowCount * highCount;
+    }
+
+    long whenModuleReceiveLowPulse(final String moduleName) {
+        final Conjunction source = determineSourceOf(moduleName);
+        final Map<String, Long> pressHolder = new HashMap<>();
+        source.recentPulses.keySet().forEach(k -> pressHolder.put(k, null));
+
+        final Map<String, Module> state = new HashMap<>(modules);
+        final List<Pulse> pulses = new ArrayList<>(state.get(ModuleType.BUTTON.symbol).processPulse(null));
+        long press = 1;
+
+        while (pressHolder.values().stream().anyMatch(Objects::isNull)) {
+            final Pulse actual = pulses.removeFirst();
+
+            if (state.containsKey(actual.targetModule)) {
+                final Module actualModule = state.get(actual.targetModule);
+                final List<Pulse> next = actualModule.processPulse(actual);
+
+                if (actualModule.name.equals(source.name)) {
+                    final Map<String, PulseType> recentPulses = ((Conjunction) actualModule).recentPulses;
+                    for (var entry : recentPulses.entrySet()) {
+                        if (entry.getValue() == PulseType.HIGH && pressHolder.get(entry.getKey()) == null) {
+                            pressHolder.put(entry.getKey(), press);
+                        }
+                    }
+                }
+                pulses.addAll(next);
+            }
+
+            if (pulses.isEmpty()) {
+                pulses.addAll(state.get(ModuleType.BUTTON.symbol).processPulse(null));
+                press++;
+            }
+        }
+        return pressHolder.values().stream().reduce(1L, (a, b) -> a * b);
+    }
+
+    private Conjunction determineSourceOf(final String moduleName) {
+        return modules.values()
+                .stream()
+                .filter(m -> m.targetModules.contains(moduleName))
+                .findFirst()
+                .map(Conjunction.class::cast)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Source of " + moduleName + "is not of type " + Conjunction.class.getName()));
     }
 
     abstract static class Module {

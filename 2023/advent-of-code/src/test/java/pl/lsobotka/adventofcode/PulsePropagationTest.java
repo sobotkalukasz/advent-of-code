@@ -26,4 +26,17 @@ class PulsePropagationTest extends BaseTest {
         assertEquals(expected, actual);
     }
 
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("PulsePropagation", "rx", 243_566_897_206_981L));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    void secondStarTest(final String fileName, final String outputModule, final long expected) {
+        final List<String> input = getFileInput(fileName);
+        final PulsePropagation pulsePropagation = new PulsePropagation(input);
+        final long actual = pulsePropagation.whenModuleReceiveLowPulse(outputModule);
+        assertEquals(expected, actual);
+    }
+
 }
