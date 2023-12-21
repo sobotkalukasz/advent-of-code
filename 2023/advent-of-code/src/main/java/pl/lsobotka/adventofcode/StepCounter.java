@@ -2,11 +2,7 @@ package pl.lsobotka.adventofcode;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import pl.lsobotka.adventofcode.utils.Coord;
 
@@ -16,13 +12,13 @@ import pl.lsobotka.adventofcode.utils.Coord;
 public class StepCounter {
 
     private final Set<Coord> walls;
-    private final int max;
+    private final int size;
     private Coord start;
 
     public StepCounter(final List<String> input) {
         this.walls = new HashSet<>();
 
-        max = input.size();
+        size = input.size();
 
         for (int row = 0; row < input.size(); row++) {
             final String rowString = input.get(row);
@@ -53,33 +49,24 @@ public class StepCounter {
     long howManyReachedInfinite(final long steps) {
         final Set<Coord> actualSteps = new HashSet<>(Set.of(start));
 
-        final Map<Integer, Integer> diffs = IntStream.range(0, max)
-                .boxed()
-                .collect(Collectors.toMap(Function.identity(), v -> 0));
-
-        final Map<Integer, Integer> deltaDiffs = IntStream.range(0, max)
-                .boxed()
-                .collect(Collectors.toMap(Function.identity(), v -> 0));
-
-        final Map<Integer, Integer> deltaDiffsChange = IntStream.range(0, max)
-                .boxed()
-                .collect(Collectors.toMap(Function.identity(), v -> 0));
+        final int[] deltaDiffs = new int[size];
+        final int[] deltaDiffsChange = new int[size];
 
         int previousStepSize = 0;
         int previosDiff = 0;
-        long size = 0;
+        long count = 0;
 
         for (int step = 1; step <= steps; step++) {
-            final int modulo = step % (max);
+            final int modulo = step % size;
 
-            if (size > 0) {
-                final int change = deltaDiffsChange.get(modulo);
-                final int delta = deltaDiffs.get(modulo) + change;
-                final int diff = diffs.get((step - 1) % (max)) + delta;
+            if (count > 0) {
+                final int change = deltaDiffsChange[modulo];
+                final int delta = deltaDiffs[modulo] + change;
+                final int diff = previosDiff + delta;
 
-                size += diff;
-                diffs.put(modulo, diff);
-                deltaDiffs.put(modulo, delta);
+                count += diff;
+                previosDiff = diff;
+                deltaDiffs[modulo] = delta;
 
             } else {
                 final Set<Coord> nextSteps = new HashSet<>();
@@ -94,25 +81,24 @@ public class StepCounter {
                 previousStepSize = actualSteps.size();
                 previosDiff = diff;
 
-                diffs.put(modulo, diff);
-                final int change = deltaDiff - deltaDiffs.get(modulo);
-                deltaDiffs.put(modulo, deltaDiff);
+                final int change = deltaDiff - deltaDiffs[modulo];
+                deltaDiffs[modulo] = deltaDiff;
 
-                if (deltaDiffsChange.get(modulo) != change) {
-                    deltaDiffsChange.put(modulo, change);
-                } else if (modulo == max - 1) {
-                    size = actualSteps.size();
+                if (deltaDiffsChange[modulo] != change) {
+                    deltaDiffsChange[modulo] = change;
+                } else if (modulo == 0) {
+                    count = actualSteps.size();
                 }
             }
         }
 
-        return size > 0 ? size : actualSteps.size();
+        return count > 0 ? count : actualSteps.size();
     }
 
     private Set<Coord> nextPositions(final Coord actual) {
         final Set<Coord> direct = actual.getDirectAdjacent();
         direct.removeIf(walls::contains);
-        direct.removeIf(c -> c.row() < 0 || c.row() >= max || c.col() < 0 || c.col() >= max);
+        direct.removeIf(c -> c.row() < 0 || c.row() >= size || c.col() < 0 || c.col() >= size);
         return direct;
     }
 
@@ -124,20 +110,20 @@ public class StepCounter {
 
     private Coord translate(final Coord c) {
         final Coord translated;
-        if (c.row() >= 0 && c.row() < max && c.col() >= 0 && c.col() < max) {
+        if (c.row() >= 0 && c.row() < size && c.col() >= 0 && c.col() < size) {
             translated = c;
         } else {
             final int row;
             final int col;
             if (c.row() < 0) {
-                row = max + c.row() % max;
+                row = size + c.row() % size;
             } else {
-                row = c.row() % max;
+                row = c.row() % size;
             }
             if (c.col() < 0) {
-                col = max + c.col() % max;
+                col = size + c.col() % size;
             } else {
-                col = c.col() % max;
+                col = c.col() % size;
             }
             translated = Coord.of(row, col);
         }
