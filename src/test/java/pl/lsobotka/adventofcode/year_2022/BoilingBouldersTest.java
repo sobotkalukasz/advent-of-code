@@ -20,7 +20,7 @@ class BoilingBouldersTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("firstStar")
-    public void firstStarTest(final String fileName, final long expected){
+    void firstStarTest(final String fileName, final long expected){
         final List<String> input = getFileInput(fileName);
         final BoilingBoulders boulders = new BoilingBoulders(input);
         final int actual = boulders.surfaceArea();
@@ -34,7 +34,7 @@ class BoilingBouldersTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("secondStar")
-    public void secondStarTest(final String fileName, final long expected) {
+    void secondStarTest(final String fileName, final long expected) {
         final List<String> input = getFileInput(fileName);
         final BoilingBoulders boulders = new BoilingBoulders(input);
         final int actual = boulders.outsideSurfaceArea();
