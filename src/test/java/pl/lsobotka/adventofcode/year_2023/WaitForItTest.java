@@ -20,7 +20,7 @@ class WaitForItTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("firstStar")
-    public void firstStarTest(final String fileName, final long expected) {
+    void firstStarTest(final String fileName, final long expected) {
         final List<String> input = getFileInput(fileName);
         final WaitForIt waitForIt = WaitForIt.ofRaces(input);
         final long actual = waitForIt.countWaysToBeatDistanceRecord();
@@ -34,7 +34,7 @@ class WaitForItTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("secondStar")
-    public void secondStarTest(final String fileName, final long expected) {
+    void secondStarTest(final String fileName, final long expected) {
         final List<String> input = getFileInput(fileName);
         final WaitForIt waitForIt = WaitForIt.ofSingleRace(input);
         final long actual = waitForIt.countWaysToBeatDistanceRecord();
