@@ -8,47 +8,71 @@ import pl.lsobotka.adventofcode.utils.Coord3d;
 import pl.lsobotka.adventofcode.utils.DimensionHolder;
 
 public class SandSlab {
-
     private final List<Brick> bricks;
+    private final Map<String, Set<String>> supports;
+    private final Map<String, Set<String>> supportedBy;
 
     public SandSlab(final List<String> input) {
-        this.bricks = input.stream().map(Brick::of).toList();
-    }
+        this.bricks = getFallenBricks(input.stream().map(Brick::of).toList());
+        this.supports = new HashMap<>();
+        this.supportedBy = new HashMap<>();
 
-    long countBricksToRemove() {
-        final List<Brick> fallenBricks = getFallenBricks();
-
-        final Map<String, Set<String>> supportsMap = new HashMap<>();
-        final Map<String, Set<String>> supportedByMap = new HashMap<>();
-
-        for (int i = 0; i < fallenBricks.size(); i++) {
-            final Brick actual = fallenBricks.get(i);
+        for (int i = 0; i < this.bricks.size(); i++) {
+            final Brick actual = this.bricks.get(i);
             final int actualHeight = actual.getMaxZ();
             final Set<Coord3d> above = actual.dimensions().getNext(DimensionType.Z, 1);
-            fallenBricks.stream().filter(b -> b.getMinZ() == actualHeight + 1).forEach(next -> {
+            this.bricks.stream().filter(b -> b.getMinZ() == actualHeight + 1).forEach(next -> {
                 final boolean supported = next.dimensions.overLaps(above);
                 if (supported) {
-                    supportsMap.computeIfAbsent(actual.id, v -> new HashSet<>()).add(next.id);
-                    supportedByMap.computeIfAbsent(next.id, v -> new HashSet<>()).add(actual.id);
+                    this.supports.computeIfAbsent(actual.id, v -> new HashSet<>()).add(next.id);
+                    this.supportedBy.computeIfAbsent(next.id, v -> new HashSet<>()).add(actual.id);
                 }
             });
         }
+    }
 
+    long countBricksPossibleRemove() {
         int count = 0;
-        for (Brick brick : fallenBricks) {
-            final Set<String> supports = supportsMap.getOrDefault(brick.id, Collections.emptySet());
-            final boolean supportedByMoreBricks = supports.stream()
-                    .map(b -> supportedByMap.getOrDefault(b, Collections.emptySet()))
+        for (Brick brick : this.bricks) {
+            final Set<String> itSupports = this.supports.getOrDefault(brick.id, Collections.emptySet());
+            final boolean supportedByMoreBricks = itSupports.stream()
+                    .map(b -> this.supportedBy.getOrDefault(b, Collections.emptySet()))
                     .allMatch(set -> set.size() > 1);
             if (supportedByMoreBricks) {
                 count++;
             }
         }
-
         return count;
     }
 
-    private List<Brick> getFallenBricks() {
+    int countBricksThatWouldFall() {
+        final Map<String, Integer> willFall = new HashMap<>();
+        for (Brick brick : bricks) {
+            final Set<String> strings = determineFallen(brick.id, new HashSet<>());
+            willFall.put(brick.id, strings.size());
+        }
+        return willFall.values().stream().reduce(0, Integer::sum);
+    }
+
+    private Set<String> determineFallen(final String id, final Set<String> willFall) {
+
+        final Set<String> fallThisIteration = new HashSet<>();
+        final Set<String> itSupports = this.supports.getOrDefault(id, Collections.emptySet());
+        for (String top : itSupports) {
+            final Set<String> down = new HashSet<>(this.supportedBy.getOrDefault(top, Collections.emptySet()));
+            down.removeIf(i -> willFall.contains(i) || i.equals(id));
+            if (down.isEmpty()) {
+                fallThisIteration.add(top);
+                willFall.add(top);
+            }
+        }
+
+        fallThisIteration.forEach(s -> determineFallen(s, willFall));
+
+        return willFall;
+    }
+
+    private List<Brick> getFallenBricks(final List<Brick> bricks) {
         final List<Brick> fallenBricks = new ArrayList<>();
 
         bricks.stream().sorted().forEach(brick -> {
@@ -63,7 +87,7 @@ public class SandSlab {
                     --offset;
                 }
             }
-            fallenBricks.add(brick.move(DimensionType.Z, offset));
+            fallenBricks.add(brick.moveDown(offset));
         });
 
         return fallenBricks;
@@ -83,8 +107,8 @@ public class SandSlab {
             return dimensions().maxZ();
         }
 
-        Brick move(final DimensionType dim, final int offset) {
-            return new Brick(id, dimensions.move(dim, offset));
+        Brick moveDown(final int offset) {
+            return new Brick(id, dimensions.move(DimensionType.Z, offset));
         }
 
         @Override
