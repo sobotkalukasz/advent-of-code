@@ -23,6 +23,20 @@ class LongWalkTest extends BaseTest {
     void firstStarTest(final String fileName, final long expected) {
         final List<String> input = getFileInput(fileName);
         final LongWalk longWalk = new LongWalk(input);
+        final long actual = longWalk.longestPathWithSlopes();
+        assertEquals(expected, actual);
+    }
+
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("2023/LongWalk_example", 154), //
+                Arguments.of("2023/LongWalk", 6622));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    void secondStarTest(final String fileName, final long expected) {
+        final List<String> input = getFileInput(fileName);
+        final LongWalk longWalk = new LongWalk(input);
         final long actual = longWalk.longestWalk();
         assertEquals(expected, actual);
     }
