@@ -16,6 +16,9 @@ import java.util.stream.Collectors;
 import pl.lsobotka.adventofcode.utils.Coord;
 import pl.lsobotka.adventofcode.utils.Dir;
 
+/*
+ * https://adventofcode.com/2023/day/23
+ * */
 public class LongWalk {
     private final ForestMap forestMap;
 
