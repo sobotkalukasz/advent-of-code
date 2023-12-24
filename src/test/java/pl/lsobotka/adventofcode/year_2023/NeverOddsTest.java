@@ -23,7 +23,21 @@ class NeverOddsTest extends BaseTest {
     void firstStarTest(final String fileName, final long from, final long to, final long expected) {
         final List<String> input = getFileInput(fileName);
         final NeverOdds neverOdds = new NeverOdds(input);
-        final long actual = neverOdds.intersectXY(from, to);
+        final long actual = neverOdds.intersectXYatRange(from, to);
+        assertEquals(expected, actual);
+    }
+
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("2023/NeverOdds_example", 47), //
+                Arguments.of("2023/NeverOdds", 652_666_650_475_950L));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    void secondStarTest(final String fileName, final long expected) {
+        final List<String> input = getFileInput(fileName);
+        final NeverOdds neverOdds = new NeverOdds(input);
+        final long actual = neverOdds.intersectXYZ();
         assertEquals(expected, actual);
     }
 

@@ -3,6 +3,9 @@ package pl.lsobotka.adventofcode.year_2023;
 import java.util.ArrayList;
 import java.util.List;
 
+/*
+ * https://adventofcode.com/2023/day/24
+ * */
 public class NeverOdds {
 
     final List<Hailstone> hailstones;
@@ -11,7 +14,7 @@ public class NeverOdds {
         this.hailstones = Hailstone.from(input);
     }
 
-    int intersectXY(final long from, final long to) {
+    int intersectXYatRange(final long from, final long to) {
         int intersectCount = 0;
 
         for (int first = 0; first < hailstones.size() - 1; first++) {
@@ -25,7 +28,58 @@ public class NeverOdds {
         return intersectCount;
     }
 
-    record Hailstone(long x, long y, long z, int velX, int velY, int velZ) {
+    long intersectXYZ() {
+        final Hailstone potential = determineHailston();
+        return potential == null ? 0 : potential.x() + potential.y() + potential.z();
+    }
+
+    private Hailstone determineHailston() {
+        final Hailstone hf = hailstones.get(0);
+        final Hailstone hl = hailstones.get(hailstones.size() - 1);
+
+        final int range = hailstones.stream()
+                .map(h -> Math.max(Math.max(Math.abs(h.vx), Math.abs(h.vy)), Math.abs(h.vz())))
+                .reduce(0, Integer::max);
+
+        for (int vx = -range; vx <= range; vx++) {
+            for (int vy = -range; vy <= range; vy++) {
+                for (int vz = -range; vz <= range; vz++) {
+
+                    final int avx = hf.vx - vx;
+                    final int avy = hf.vy - vy;
+                    final int bvx = hl.vx - vx;
+                    final int bvy = hl.vy - vy;
+
+                    final int divisor = (avx * bvy) - (avy * bvx);
+
+                    if (divisor != 0) {
+                        long time = (bvy * (hl.x - hf.x) - bvx * (hl.y - hf.y)) / divisor;
+
+                        long x = hf.x + hf.vx * time - vx * time;
+                        long y = hf.y + hf.vy * time - vy * time;
+                        long z = hf.z + hf.vz * time - vz * time;
+
+                        final Hailstone potential = new Hailstone(x, y, z, vx, vy, vz);
+
+                        boolean found = true;
+                        for (int index = 1; index < hailstones.size() - 1; index++) {
+                            if (!potential.canIntersect(hailstones.get(index))) {
+                                found = false;
+                                break;
+                            }
+                        }
+
+                        if (found) {
+                            return potential;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    record Hailstone(long x, long y, long z, int vx, int vy, int vz) {
 
         static List<Hailstone> from(final List<String> input) {
             final List<Hailstone> hails = new ArrayList<>();
@@ -39,23 +93,33 @@ public class NeverOdds {
 
         //Line–line intersection
         boolean canIntersectXYinRange(final Hailstone other, final long from, final long to) {
-            boolean intersect = false;
-            final int denominator = this.velX * other.velY - this.velY * other.velX;
+            final double time = willIntersectAtTime(other);
 
-            double px = (double) (other.x - this.x) * other.velY - (other.y - this.y) * other.velX;
-            double py = (double) (this.x - other.x) * this.velY - (this.y - other.y) * this.velX;
+            double x = time * this.vx + this.x;
+            double y = time * this.vy + this.y;
+
+            return time > 0 && x >= from && x <= to && y >= from && y <= to;
+        }
+
+        private double willIntersectAtTime(final Hailstone other) {
+            final int denominator = this.vx * other.vy - this.vy * other.vx;
+
+            double px = (double) (other.x - this.x) * other.vy - (other.y - this.y) * other.vx;
+            double py = (double) (this.x - other.x) * this.vy - (this.y - other.y) * this.vx;
 
             final double time = px / denominator;
-            double intersectionX = time * this.velX + this.x;
-            double intersectionY = time * this.velY + this.y;
 
-            if (intersectionX >= from && intersectionX <= to && intersectionY >= from && intersectionY <= to && (
-                    time > 0 && (py / denominator) < 0)) {
-                intersect = true;
+            return (time > 0 && (py / denominator) < 0) ? time : 0;
+        }
 
+        boolean canIntersect(final Hailstone other) {
+            if (other.vx != vx) {
+                long nextTime = (x - other.x) / (other.vx - vx);
+                return (x + nextTime * vx == other.x + nextTime * other.vx) // X match
+                        && (y + nextTime * vy == other.y + nextTime * other.vy) // Y match
+                        && (z + nextTime * vz == other.z + nextTime * other.vz); // Z match
             }
-
-            return intersect;
+            return false;
         }
     }
 }
