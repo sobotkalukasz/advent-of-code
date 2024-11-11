@@ -12,8 +12,8 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <source>21</source>
-          <target>21</target>
+          <source>23</source>
+          <target>23</target>
         </configuration>
       </plugin>
       <plugin>
@@ -25,10 +25,10 @@
   </build>
 
   <properties>
-    <maven.compiler.source>21</maven.compiler.source>
-    <maven.compiler.target>21</maven.compiler.target>
+    <maven.compiler.source>23</maven.compiler.source>
+    <maven.compiler.target>23</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <junitVersion>5.10.1</junitVersion>
+    <junitVersion>5.11.3</junitVersion>
   </properties>
 
   <dependencies>
@@ -47,7 +47,7 @@
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
-      <version>1.18.30</version>
+      <version>1.18.34</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>
