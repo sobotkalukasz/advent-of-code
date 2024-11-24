@@ -20,7 +20,7 @@ class CamelCardsTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("firstStar")
-    public void firstStarTest(final String fileName, final long expected) {
+    void firstStarTest(final String fileName, final long expected) {
         final List<String> input = getFileInput(fileName);
         final CamelCards camelCards = new CamelCards(input);
         final long actual = camelCards.winningScore();
@@ -34,7 +34,7 @@ class CamelCardsTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("secondStar")
-    public void secondStarTest(final String fileName, final long expected) {
+    void secondStarTest(final String fileName, final long expected) {
         final List<String> input = getFileInput(fileName);
         final CamelCards camelCards = new CamelCards(input);
         final long actual = camelCards.winningScoreWithJoker();

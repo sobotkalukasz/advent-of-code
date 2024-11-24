@@ -20,7 +20,7 @@ class ScratchcardsTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("firstStar")
-    public void firstStarTest(final String fileName, final int expected) {
+    void firstStarTest(final String fileName, final int expected) {
         final List<String> input = getFileInput(fileName);
         final Scratchcards Scratchcards = new Scratchcards(input);
         final int actual = Scratchcards.sumCardPoints();
@@ -34,7 +34,7 @@ class ScratchcardsTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("secondStar")
-    public void secondStarTest(final String fileName, final int expected) {
+     void secondStarTest(final String fileName, final int expected) {
         final List<String> input = getFileInput(fileName);
         final Scratchcards Scratchcards = new Scratchcards(input);
         final int actual = Scratchcards.countCards();

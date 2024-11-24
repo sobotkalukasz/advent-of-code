@@ -20,7 +20,7 @@ class CosmicExpansionTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("firstStar")
-    public void firstStarTest(final String fileName, final long expected) {
+    void firstStarTest(final String fileName, final long expected) {
         final List<String> input = getFileInput(fileName);
         final CosmicExpansion cosmicExpansion = new CosmicExpansion(input);
         final long actual = cosmicExpansion.sumOfDistances();
@@ -35,7 +35,7 @@ class CosmicExpansionTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("secondStar")
-    public void secondStarTest(final String fileName, final int age, final long expected) {
+    void secondStarTest(final String fileName, final int age, final long expected) {
         final List<String> input = getFileInput(fileName);
         final CosmicExpansion cosmicExpansion = new CosmicExpansion(input);
         final long actual = cosmicExpansion.sumOfDistancesWithUniverseAge(age);

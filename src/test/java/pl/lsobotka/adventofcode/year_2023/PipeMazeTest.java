@@ -21,7 +21,7 @@ class PipeMazeTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("firstStar")
-    public void firstStarTest(final String fileName, final long expected) {
+    void firstStarTest(final String fileName, final long expected) {
         final List<String> input = getFileInput(fileName);
         final PipeMaze pipeMaze = new PipeMaze(input);
         final long actual = pipeMaze.farthestStep();
@@ -38,7 +38,7 @@ class PipeMazeTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("secondStar")
-    public void secondStarTest(final String fileName, final long expected) {
+    void secondStarTest(final String fileName, final long expected) {
         final List<String> input = getFileInput(fileName);
         final PipeMaze pipeMaze = new PipeMaze(input);
         final long actual = pipeMaze.countEnclosedTiles();

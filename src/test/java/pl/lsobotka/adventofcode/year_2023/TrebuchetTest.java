@@ -20,7 +20,7 @@ class TrebuchetTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("firstStar")
-    public void firstStarTest(final String fileName, final int expected) {
+    void firstStarTest(final String fileName, final int expected) {
         final List<String> input = getFileInput(fileName);
         final Trebuchet trebuchet = new Trebuchet(input);
         final int actual = trebuchet.sumOfCalibrationValues();
@@ -34,7 +34,7 @@ class TrebuchetTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("secondStar")
-    public void secondStarTest(final String fileName, final int expected) {
+    void secondStarTest(final String fileName, final int expected) {
         final List<String> input = getFileInput(fileName);
         final Trebuchet trebuchet = new Trebuchet(input);
         final int actual = trebuchet.sumOfComplexCalibrationValues();

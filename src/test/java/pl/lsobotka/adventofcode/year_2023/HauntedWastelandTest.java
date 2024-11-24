@@ -21,7 +21,7 @@ class HauntedWastelandTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("firstStar")
-    public void firstStarTest(final String fileName, final long expected) {
+    void firstStarTest(final String fileName, final long expected) {
         final List<String> input = getFileInput(fileName);
         final HauntedWasteland hauntedWasteland = new HauntedWasteland(input);
         final long actual = hauntedWasteland.countIterations();
@@ -35,7 +35,7 @@ class HauntedWastelandTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("secondStar")
-    public void secondStarTest(final String fileName, final long expected) {
+    void secondStarTest(final String fileName, final long expected) {
         final List<String> input = getFileInput(fileName);
         final HauntedWasteland hauntedWasteland = new HauntedWasteland(input);
         final long actual = hauntedWasteland.countSimultaneousIterations();

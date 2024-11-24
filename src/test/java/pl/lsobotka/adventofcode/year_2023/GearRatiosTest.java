@@ -20,7 +20,7 @@ class GearRatiosTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("firstStar")
-    public void firstStarTest(final String fileName, final int expected) {
+    void firstStarTest(final String fileName, final int expected) {
         final List<String> input = getFileInput(fileName);
         final GearRatios gearRatios = new GearRatios(input);
         final int actual = gearRatios.sumOfEnginePartNumbers();
@@ -34,7 +34,7 @@ class GearRatiosTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("secondStar")
-    public void secondStarTest(final String fileName, final int expected) {
+    void secondStarTest(final String fileName, final int expected) {
         final List<String> input = getFileInput(fileName);
         final GearRatios gearRatios = new GearRatios(input);
         final int actual = gearRatios.sumOfGearRatio();
