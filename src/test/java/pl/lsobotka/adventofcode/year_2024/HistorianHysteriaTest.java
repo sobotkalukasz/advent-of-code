@@ -27,4 +27,18 @@ class HistorianHysteriaTest extends BaseTest {
         assertEquals(expected, actual);
     }
 
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("2024/HistorianHysteria_example", 31), //
+                Arguments.of("2024/HistorianHysteria", 26593248));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    void secondStarTest(final String fileName, final long expected) {
+        final List<String> input = getFileInput(fileName);
+        final HistorianHysteria hysteria = new HistorianHysteria(input);
+        final long actual = hysteria.similarityScore();
+        assertEquals(expected, actual);
+    }
+
 }
