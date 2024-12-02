@@ -27,4 +27,18 @@ class RedNosedReportTest extends BaseTest {
         assertEquals(expected, actual);
     }
 
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("2024/RedNosedReport_example", 4), //
+                Arguments.of("2024/RedNosedReport", 328));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    void secondStarTest(final String fileName, final long expected) {
+        final List<String> input = getFileInput(fileName);
+        final RedNosedReport report = new RedNosedReport(input);
+        final long actual = report.countPossibleSafeReports();
+        assertEquals(expected, actual);
+    }
+
 }

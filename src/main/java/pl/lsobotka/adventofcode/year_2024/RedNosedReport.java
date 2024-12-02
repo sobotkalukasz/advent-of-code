@@ -21,6 +21,10 @@ public class RedNosedReport {
         return reports.stream().filter(Report::isSafe).count();
     }
 
+    long countPossibleSafeReports() {
+        return reports.stream().filter(Report::isSafeOrCanBeSafe).count();
+    }
+
 }
 
 record Report(List<Integer> levels) {
@@ -42,22 +46,35 @@ record Report(List<Integer> levels) {
     }
 
     boolean isSafe() {
-        boolean safe = false;
-        if (validate(INCREASE) || validate(DECREASE)) {
-            safe = validate(DIFF_3);
-        }
-        return safe;
+        return (validate(INCREASE) || validate(DECREASE)) && validate(DIFF_3);
     }
 
-    private boolean validate(final BiPredicate<Integer, Integer> test) {
+    boolean isSafeOrCanBeSafe() {
+        boolean canBeSafe = (validate(INCREASE) || validate(DECREASE)) && validate(DIFF_3);
+        for (int idxToSkip = 0; idxToSkip < levels().size(); idxToSkip++) {
+            if (!canBeSafe) {
+                final List<Integer> copy = new ArrayList<>(levels.subList(0, idxToSkip));
+                copy.addAll(levels.subList(idxToSkip + 1, levels.size()));
+                canBeSafe = (validate(INCREASE, copy) || validate(DECREASE, copy)) && validate(DIFF_3, copy);
+            }
+        }
 
-        for (int i = 1; i < levels.size(); i++) {
-            int previous = levels.get(i - 1);
-            int current = levels.get(i);
-            if (!test.test(previous, current)) {
+        return canBeSafe;
+    }
+
+    private boolean validate(final BiPredicate<Integer, Integer> predicate) {
+        return validate(predicate, levels);
+    }
+
+    private boolean validate(final BiPredicate<Integer, Integer> predicate, final List<Integer> copy) {
+        for (int i = 1; i < copy.size(); i++) {
+            int previous = copy.get(i - 1);
+            int current = copy.get(i);
+            if (!predicate.test(previous, current)) {
                 return false;
             }
         }
         return true;
     }
+
 }
