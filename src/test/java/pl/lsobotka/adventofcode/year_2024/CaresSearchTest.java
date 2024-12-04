@@ -27,4 +27,18 @@ class CaresSearchTest extends BaseTest {
         assertEquals(expected, actual);
     }
 
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("2024/CaresSearch_example", 9), //
+                Arguments.of("2024/CaresSearch", 1950));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    void secondStarTest(final String fileName, final long expected) {
+        final List<String> input = getFileInput(fileName);
+        final CaresSearch caresSearch = new CaresSearch(input);
+        final long actual = caresSearch.countXmasStars();
+        assertEquals(expected, actual);
+    }
+
 }
