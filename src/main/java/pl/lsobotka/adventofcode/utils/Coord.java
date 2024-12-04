@@ -3,7 +3,6 @@ package pl.lsobotka.adventofcode.utils;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public record Coord(int row, int col) {
     public static Coord of(final int row, final int col) {
@@ -46,7 +45,20 @@ public record Coord(int row, int col) {
         };
     }
 
+    public Coord getAdjacent(final AllDir dir) {
+        return switch (dir) {
+            case UP -> Coord.of(this.row - 1, this.col);
+            case DOWN -> Coord.of(this.row + 1, this.col);
+            case LEFT -> Coord.of(this.row, this.col - 1);
+            case RIGHT -> Coord.of(this.row, this.col + 1);
+            case UP_LEFT -> Coord.of(this.row - 1, this.col - 1);
+            case UP_RIGHT -> Coord.of(this.row - 1, this.col + 1);
+            case DOWN_LEFT -> Coord.of(this.row + 1, this.col - 1);
+            case DOWN_RIGHT -> Coord.of(this.row + 1, this.col + 1);
+        };
+    }
+
     public List<Coord> getAdjacent(final List<Dir> directions) {
-        return directions.stream().map(this::getAdjacent).collect(Collectors.toList());
+        return directions.stream().map(this::getAdjacent).toList();
     }
 }
