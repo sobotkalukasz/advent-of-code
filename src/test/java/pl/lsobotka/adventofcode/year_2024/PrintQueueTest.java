@@ -23,7 +23,21 @@ class PrintQueueTest extends BaseTest {
     void firstStarTest(final String fileName, final long expected) {
         final List<String> input = getFileInput(fileName);
         final PrintQueue printQueue = new PrintQueue(input);
-        final long actual = printQueue.sumOfMiddleCorrectlyOrderedPages();
+        final long actual = printQueue.sumMiddleOfCorrectlyOrderedPages();
+        assertEquals(expected, actual);
+    }
+
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("2024/PrintQueue_example", 123), //
+                Arguments.of("2024/PrintQueue", 6204));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    void secondStarTest(final String fileName, final long expected) {
+        final List<String> input = getFileInput(fileName);
+        final PrintQueue printQueue = new PrintQueue(input);
+        final long actual = printQueue.fixOrderAndSumMiddlePages();
         assertEquals(expected, actual);
     }
 

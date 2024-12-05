@@ -3,10 +3,7 @@ package pl.lsobotka.adventofcode;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
-import java.util.function.Function;
-import java.util.stream.Stream;
 
 public abstract class BaseTest {
     private static final String RESOURCE_PATH = "src/test/resources/";
@@ -21,7 +18,7 @@ public abstract class BaseTest {
 
     public String getFileInputSingleLine(String fileName) {
         try (FileReader fileReader = new FileReader(RESOURCE_PATH.concat(fileName))) {
-            return new BufferedReader(fileReader).lines().toList().get(0);
+            return new BufferedReader(fileReader).lines().toList().getFirst();
         } catch (Exception e) {
             throw new RuntimeException("Can not read file " + fileName, e);
         }

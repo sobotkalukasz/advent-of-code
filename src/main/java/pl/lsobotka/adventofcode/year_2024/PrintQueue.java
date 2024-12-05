@@ -8,7 +8,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /*
- * https://adventofcode.com/2024/day/4
+ * https://adventofcode.com/2024/day/5
  * */
 public class PrintQueue {
 
@@ -18,11 +18,11 @@ public class PrintQueue {
     private final List<PageNumbers> pageNumbers;
 
     PrintQueue(final List<String> input) {
-        orderingRule = getRules(input);
-        pageNumbers = getPages(input);
+        orderingRule = prepareRules(input);
+        pageNumbers = preparePages(input);
     }
 
-    long sumOfMiddleCorrectlyOrderedPages() {
+    long sumMiddleOfCorrectlyOrderedPages() {
         return pageNumbers.stream()
                 .filter(p -> p.isInCorrectOrder(orderingRule))
                 .map(PageNumbers::getMiddlePage)
@@ -30,7 +30,16 @@ public class PrintQueue {
                 .orElse(0);
     }
 
-    private Map<Integer, List<Integer>> getRules(final List<String> input) {
+    long fixOrderAndSumMiddlePages() {
+        return pageNumbers.stream()
+                .filter(p -> !p.isInCorrectOrder(orderingRule))
+                .map(p -> p.fixOrder(orderingRule))
+                .map(PageNumbers::getMiddlePage)
+                .reduce(Integer::sum)
+                .orElse(0);
+    }
+
+    private Map<Integer, List<Integer>> prepareRules(final List<String> input) {
         final Map<Integer, List<Integer>> rules = new HashMap<>();
 
         for (String line : input) {
@@ -38,14 +47,14 @@ public class PrintQueue {
             if (matcher.find()) {
                 final int beforeNumber = Integer.parseInt(matcher.group(1));
                 final int afterNumber = Integer.parseInt(matcher.group(2));
-                rules.computeIfAbsent(beforeNumber, val -> new ArrayList<>()).add(afterNumber);
+                rules.computeIfAbsent(beforeNumber, v -> new ArrayList<>()).add(afterNumber);
             }
         }
 
         return rules;
     }
 
-    private List<PageNumbers> getPages(final List<String> input) {
+    private List<PageNumbers> preparePages(final List<String> input) {
         final List<PageNumbers> numbers = new ArrayList<>();
 
         for (String line : input) {
@@ -74,13 +83,17 @@ record PageNumbers(List<Integer> pages) {
     }
 
     boolean isInCorrectOrder(final Map<Integer, List<Integer>> orderingRule) {
+        return isInCorrectOrder(pages, orderingRule);
+    }
+
+    private boolean isInCorrectOrder(List<Integer> toValidate, final Map<Integer, List<Integer>> orderingRule) {
         boolean isCorrectOrder = true;
-        for (int i = 0; i < pages.size() && isCorrectOrder; i++) {
-            final Integer page = pages.get(i);
+        for (int i = 0; i < toValidate.size() && isCorrectOrder; i++) {
+            final Integer page = toValidate.get(i);
             if (orderingRule.containsKey(page)) {
                 final List<Integer> beforeRule = orderingRule.get(page);
                 for (int j = i - 1; j >= 0; j--) {
-                    if (beforeRule.contains(pages.get(j))) {
+                    if (beforeRule.contains(toValidate.get(j))) {
                         isCorrectOrder = false;
                         break;
                     }
@@ -88,6 +101,40 @@ record PageNumbers(List<Integer> pages) {
             }
         }
         return isCorrectOrder;
+    }
+
+    PageNumbers fixOrder(final Map<Integer, List<Integer>> orderingRule) {
+        final List<Integer> fixedOrder = new ArrayList<>(pages);
+
+        while (!isInCorrectOrder(fixedOrder, orderingRule)) {
+            swap(fixedOrder, orderingRule);
+        }
+
+        return new PageNumbers(fixedOrder);
+    }
+
+    private void swap(final List<Integer> numbers, final Map<Integer, List<Integer>> orderingRule) {
+        int index = -1;
+        int moveToIndex = -1;
+
+        for (int i = 1; i < pages.size() && index == -1; i++) {
+            final Integer page = numbers.get(i);
+            if (orderingRule.containsKey(page)) {
+                final List<Integer> beforeRule = orderingRule.get(page);
+                for (int j = 0; j < i; j++) {
+                    if (beforeRule.contains(numbers.get(j))) {
+                        moveToIndex = j;
+                        index = i;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (index != -1) {
+            final Integer removed = numbers.remove(index);
+            numbers.add(moveToIndex, removed);
+        }
     }
 
     Integer getMiddlePage() {
