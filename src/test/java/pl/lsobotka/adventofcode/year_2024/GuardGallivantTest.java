@@ -27,4 +27,19 @@ class GuardGallivantTest extends BaseTest {
         assertEquals(expected, actual);
     }
 
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("2024/GuardGallivant_example", 6), //
+                Arguments.of("2024/GuardGallivant", 1602)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    void secondStarTest(final String fileName, final long expected) {
+        final List<String> input = getFileInput(fileName);
+        final GuardGallivant guardGallivant = new GuardGallivant(input);
+        final long actual = guardGallivant.possibleObstaclesToLoopGuard();
+        assertEquals(expected, actual);
+    }
+
 }
