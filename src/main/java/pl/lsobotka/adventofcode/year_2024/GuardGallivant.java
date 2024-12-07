@@ -11,6 +11,9 @@ import pl.lsobotka.adventofcode.utils.Coord;
 import pl.lsobotka.adventofcode.utils.Dir;
 import pl.lsobotka.adventofcode.utils.Rotate;
 
+/*
+ * https://adventofcode.com/2024/day/6
+ * */
 public class GuardGallivant {
     private final GuardMap guardMap;
 
