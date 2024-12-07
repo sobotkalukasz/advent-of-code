@@ -3,6 +3,8 @@ package pl.lsobotka.adventofcode.year_2024;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -13,15 +15,26 @@ import java.util.stream.Stream;
 public class BridgeRepair {
 
     private final List<Equation> equations;
+    private final Map<Integer, List<List<Operator>>> permutationCache;
 
     public BridgeRepair(final List<String> input) {
         equations = input.stream().map(Equation::parseEquation).toList();
+        permutationCache = new ConcurrentHashMap<>();
     }
 
     BigInteger findSumOfCorrectEquations() {
-        final Operator[] operators = { Operator.ADD, Operator.MULTIPLY };
+        return calculate(Operator.ADD, Operator.MULTIPLY);
+    }
+
+    BigInteger findSumOfCorrectEquationsWithConcatenation() {
+        return calculate(Operator.ADD, Operator.MULTIPLY, Operator.CONCAT);
+    }
+
+    private BigInteger calculate(final Operator... operators) {
+        permutationCache.clear();
         return equations.stream()
-                .filter(e -> e.canBePossible(operators))
+                .parallel()
+                .filter(e -> e.canBePossible(operators, permutationCache))
                 .map(Equation::value)
                 .reduce(BigInteger::add)
                 .orElse(BigInteger.ZERO);
@@ -40,14 +53,14 @@ record Equation(BigInteger value, List<BigInteger> params) {
                     .map(BigInteger::new)
                     .toList();
             return new Equation(value, params);
-
         } else {
             throw new RuntimeException("Unable to parse equation: " + line);
         }
     }
 
-    boolean canBePossible(final Operator[] operators) {
-        final List<List<Operator>> permutations = Operator.generatePermutations(operators, params.size() - 1);
+    boolean canBePossible(final Operator[] operators, final Map<Integer, List<List<Operator>>> permutationCache) {
+        final List<List<Operator>> permutations = permutationCache.computeIfAbsent(params.size() - 1,
+                v -> Operator.generatePermutations(operators, params.size() - 1));
         for (List<Operator> permutation : permutations) {
             if (validate(permutation)) {
                 return true;
@@ -62,9 +75,8 @@ record Equation(BigInteger value, List<BigInteger> params) {
             final Operator operator = operators.get(i - 1);
             sum = switch (operator) {
                 case ADD -> sum.add(params.get(i));
-                case SUBTRACT -> sum.subtract(params.get(i));
                 case MULTIPLY -> sum.multiply(params.get(i));
-                case DIVIDE -> sum.divide(params.get(i));
+                case CONCAT -> new BigInteger(sum.toString() + params.get(i).toString());
             };
         }
         return sum.compareTo(value) == 0;
@@ -73,13 +85,12 @@ record Equation(BigInteger value, List<BigInteger> params) {
 }
 
 enum Operator {
-    ADD, SUBTRACT, MULTIPLY, DIVIDE;
+    ADD, MULTIPLY, CONCAT;
 
     static List<List<Operator>> generatePermutations(final Operator[] operators, final int size) {
         final List<List<Operator>> result = new ArrayList<>();
         generate(new ArrayList<>(), operators, size, result);
         return result;
-
     }
 
     private static void generate(final List<Operator> current, final Operator[] operators, int size,
@@ -88,6 +99,7 @@ enum Operator {
             result.add(new ArrayList<>(current));
             return;
         }
+
         for (Operator op : operators) {
             current.add(op);
             generate(current, operators, size, result);
