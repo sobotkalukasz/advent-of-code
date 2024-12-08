@@ -61,4 +61,12 @@ public record Coord(int row, int col) {
     public List<Coord> getAdjacent(final List<Dir> directions) {
         return directions.stream().map(this::getAdjacent).toList();
     }
+
+    public Coord calculateDiff(final Coord o) {
+        return new Coord(row - o.row, col - o.col);
+    }
+
+    public Coord moveBy(final Coord o) {
+        return new Coord(row + o.row, col + o.col);
+    }
 }
