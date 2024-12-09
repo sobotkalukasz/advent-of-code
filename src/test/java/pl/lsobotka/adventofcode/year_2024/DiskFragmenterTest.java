@@ -26,4 +26,18 @@ class DiskFragmenterTest extends BaseTest {
         assertEquals(expected, actual);
     }
 
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("2024/DiskFragmenter_example", 2858), //
+                Arguments.of("2024/DiskFragmenter", 6347435485773L));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    void secondStarTest(final String fileName, final long expected) {
+        final String input = getFileInputSingleLine(fileName);
+        final DiskFragmenter diskFragmenter = new DiskFragmenter(input);
+        final long actual = diskFragmenter.getChecksumWithFileMove();
+        assertEquals(expected, actual);
+    }
+
 }
