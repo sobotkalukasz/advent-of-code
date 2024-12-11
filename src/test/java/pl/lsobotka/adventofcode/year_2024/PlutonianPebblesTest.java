@@ -13,17 +13,18 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class PlutonianPebblesTest extends BaseTest {
 
-    private static Stream<Arguments> firstStar() {
+    private static Stream<Arguments> stars() {
         return Stream.of(Arguments.of("2024/PlutonianPebbles_example", 25, 55_312), //
-                Arguments.of("2024/PlutonianPebbles", 25, 199986));
+                Arguments.of("2024/PlutonianPebbles", 25, 199986), //
+                Arguments.of("2024/PlutonianPebbles", 75, 236804088748754L));
     }
 
     @ParameterizedTest
-    @MethodSource("firstStar")
-    void firstStarTest(final String fileName, final int blink, final long expected) {
+    @MethodSource("stars")
+    void starsTest(final String fileName, final int times, final long expected) {
         final List<Integer> input = getFileInputAsInteger(fileName, "\\s");
         final PlutonianPebbles plutonianPebbles = new PlutonianPebbles();
-        final long actual = plutonianPebbles.blink(input, blink);
+        final long actual = plutonianPebbles.blink(input, times);
         assertEquals(expected, actual);
     }
 

@@ -1,39 +1,50 @@
 package pl.lsobotka.adventofcode.year_2024;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class PlutonianPebbles {
 
-    long blink(final List<Integer> values, final int blinkTimes) {
-        List<Long> stones = values.stream().mapToLong(Integer::longValue).boxed().toList();
-        int times = blinkTimes;
+    long blink(final List<Integer> values, final int times) {
 
-        while (times-- > 0) {
-            stones = singleBlink(stones);
+        Map<Long, Long> stonesCount = values.stream()
+                .mapToLong(Integer::longValue)
+                .boxed()
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+
+        for (int i = 0; i < times; i++) {
+            stonesCount = singleBlink(stonesCount);
         }
 
-        return stones.size();
+        return stonesCount.values().stream().mapToLong(Long::longValue).sum();
     }
 
-    private List<Long> singleBlink(final List<Long> stones) {
-        final List<Long> values = new ArrayList<>();
-        for (Long stone : stones) {
+    private Map<Long, Long> singleBlink(final Map<Long, Long> stonesBefore) {
+        Map<Long, Long> stones = new HashMap<>();
+
+        for (var entry : stonesBefore.entrySet()) {
+            long stone = entry.getKey();
+            long count = entry.getValue();
+
             if (stone == 0) {
-                values.add(1L);
+                stones.merge(1L, count, Long::sum);
             } else {
-                final String stoneString = Long.toString(stone);
-                if (stoneString.length() % 2 == 0) {
-                    final int middle = stoneString.length() / 2;
-                    values.add(Long.parseLong(stoneString.substring(0, middle)));
-                    values.add(Long.parseLong(stoneString.substring(middle)));
+                int length = (int) Math.log10(stone) + 1;
+                if (length % 2 == 0) {
+                    int halfLength = length / 2;
+                    long divisor = (long) Math.pow(10, halfLength);
+                    stones.merge(stone / divisor, count, Long::sum);
+                    stones.merge(stone % divisor, count, Long::sum);
                 } else {
-                    values.add(stone * 2024);
+                    stones.merge(stone * 2024, count, Long::sum);
                 }
             }
         }
 
-        return values;
+        return stones;
     }
 
 }
