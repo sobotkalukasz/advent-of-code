@@ -27,4 +27,19 @@ class ClawContraptionTest extends BaseTest {
         final long actual = clawContraption.tokenCost();
         assertEquals(expected, actual);
     }
+
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("2024/ClawContraption_example", 875318608908L), //
+                Arguments.of("2024/ClawContraption", 83102355665474L));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    void secondStarTest(final String fileName, final long expected) {
+        final List<String> lines = getFileInput(fileName);
+        final String input = String.join(" ", lines);
+        final ClawContraption clawContraption = new ClawContraption(input);
+        final long actual = clawContraption.tokenCostWithoutLimit();
+        assertEquals(expected, actual);
+    }
 }
