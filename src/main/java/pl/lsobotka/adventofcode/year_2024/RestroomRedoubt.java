@@ -2,8 +2,10 @@ package pl.lsobotka.adventofcode.year_2024;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import pl.lsobotka.adventofcode.utils.Coord;
 
@@ -54,6 +56,50 @@ public class RestroomRedoubt {
         }
 
         return quadrants[0] * quadrants[1] * quadrants[2] * quadrants[3];
+    }
+
+    long displayTreeAfter(final int tall, final int wide, final int maxTime) {
+        for (int i = 0; i < maxTime; i++) {
+            final int seconds = i + 1;
+            final Set<Coord> moved = robots.stream()
+                    .map(r -> r.positionAfter(tall, wide, seconds))
+                    .collect(Collectors.toSet());
+
+            for (Coord coord : moved) {
+                if (isPyramid(moved, coord.row(), coord.col())) {
+                    printTree(tall, wide, moved);
+                    return seconds;
+                }
+            }
+        }
+        return 0;
+    }
+
+    private boolean isPyramid(final Set<Coord> coordSet, final int row, final int col) {
+        if (!coordSet.contains(new Coord(row + 1, col - 1)) || !coordSet.contains(new Coord(row + 1, col))
+                || !coordSet.contains(new Coord(row + 1, col + 1))) {
+            return false;
+        }
+
+        return coordSet.contains(new Coord(row + 2, col - 2)) && coordSet.contains(new Coord(row + 2, col - 1))
+                && coordSet.contains(new Coord(row + 2, col)) && coordSet.contains(new Coord(row + 2, col + 1))
+                && coordSet.contains(new Coord(row + 2, col + 2));
+    }
+
+    private void printTree(int tall, int wide, Set<Coord> moved) {
+        final StringBuilder treeBuilder = new StringBuilder();
+        for (int row = 0; row < tall; row++) {
+            for (int col = 0; col < wide; col++) {
+                final Coord coord = Coord.of(row, col);
+                if (moved.contains(coord)) {
+                    treeBuilder.append("X");
+                } else {
+                    treeBuilder.append(" ");
+                }
+            }
+            treeBuilder.append("\n");
+        }
+        System.out.println(treeBuilder);
     }
 
     record Robot(Coord pos, Coord vel) {

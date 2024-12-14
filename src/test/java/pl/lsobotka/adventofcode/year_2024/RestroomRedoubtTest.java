@@ -26,4 +26,17 @@ class RestroomRedoubtTest extends BaseTest {
         final long actual = restroomRedoubt.determineSafetyFactor(tall, wide, time);
         assertEquals(expected, actual);
     }
+
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("2024/RestroomRedoubt", 103, 101, 10000, 6888));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    void secondStarTest(final String fileName, int tall, int wide, int time, final long expected) {
+        final List<String> lines = getFileInput(fileName);
+        final RestroomRedoubt restroomRedoubt = new RestroomRedoubt(lines);
+        final long actual = restroomRedoubt.displayTreeAfter(tall, wide, time);
+        assertEquals(expected, actual);
+    }
 }
