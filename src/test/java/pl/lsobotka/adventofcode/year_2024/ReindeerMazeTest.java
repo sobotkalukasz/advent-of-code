@@ -28,4 +28,19 @@ class ReindeerMazeTest extends BaseTest {
         assertEquals(expected, actual);
     }
 
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("2024/ReindeerMaze_example_1", 45), //
+                Arguments.of("2024/ReindeerMaze_example_2", 64), //
+                Arguments.of("2024/ReindeerMaze", 679));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    void secondStarTest(final String fileName, final long expected) {
+        final List<String> lines = getFileInput(fileName);
+        final ReindeerMaze reindeerMaze = new ReindeerMaze(lines);
+        final long actual = reindeerMaze.countBestTiles();
+        assertEquals(expected, actual);
+    }
+
 }
