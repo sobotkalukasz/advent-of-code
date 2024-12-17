@@ -6,23 +6,21 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class ChronospatialComputer {
-    private final State initialState;
     private int[] instructions;
+    private long a;
+    private long b;
+    private long c;
 
     public ChronospatialComputer(final List<String> lines) {
-        int a = 0;
-        int b = 0;
-        int c = 0;
-
         for (String line : lines) {
             line = line.trim();
 
             if (line.startsWith("Register A:")) {
-                a = Integer.parseInt(line.split(":")[1].trim());
+                a = Long.parseLong(line.split(":")[1].trim());
             } else if (line.startsWith("Register B:")) {
-                b = Integer.parseInt(line.split(":")[1].trim());
+                b = Long.parseLong(line.split(":")[1].trim());
             } else if (line.startsWith("Register C:")) {
-                c = Integer.parseInt(line.split(":")[1].trim());
+                c = Long.parseLong(line.split(":")[1].trim());
             } else if (line.startsWith("Program:")) {
                 String[] parts = line.split(":")[1].trim().split(",");
                 this.instructions = new int[parts.length];
@@ -31,140 +29,103 @@ public class ChronospatialComputer {
                 }
             }
         }
-
-        this.initialState = new State(a, b, c);
     }
 
     String run() {
-        final Computer computer = new Computer(instructions, initialState);
-        return computer.calculateResult();
+        final Computer computer = new Computer(instructions, a, b, c);
+        final List<Integer> output = computer.calculateResult();
+        return output.stream().map(String::valueOf).collect(Collectors.joining(","));
+    }
+
+    /*
+     * 2,4,1,1,7,5,4,4,1,4,0,3,5,5,3,0
+     * 2,4 - a = a % 8
+     * 1,1 - b = b ^ 1
+     * 7,5 - c = a >> b
+     * 4,4 - b = b ^ c
+     * 1,4 - b = b ^ 4
+     * 0,3 - a = a >> 3
+     * 5,5 - out b % 8
+     * 3,0 - (a != 0) jump
+     *
+     *  out((b ^ ((a % 8) >> (b ^ 1))) ^ 4)
+     *  a >> 3
+     *
+     * */
+    long findLowestInitialState() {
+        return reverseSearch(0, 0, Long.MAX_VALUE);
+    }
+
+    private long reverseSearch(long cur, int pos, long min) {
+        final List<Integer> subInstruction = Arrays.stream(instructions)
+                .boxed()
+                .toList()
+                .subList(instructions.length - pos - 1, instructions.length);
+
+        for (int i = 0; i < 8; i++) {
+            long next = (cur << 3) + i;
+            final Computer computer = new Computer(instructions, next, 0, 0);
+            final List<Integer> output = computer.calculateResult();
+            if (output.equals(subInstruction)) {
+                if (pos == instructions.length - 1) {
+                    min = next;
+                    break;
+                }
+                min = Math.min(min, reverseSearch(next, pos + 1, min));
+
+            }
+        }
+        return min;
     }
 
     static class Computer {
         private int pointer = 0;
         private final int[] instruction;
-        private final List<State> register;
+        long a;
+        long b;
+        long c;
 
-        Computer(final int[] instruction, final State initial) {
+        Computer(final int[] instruction, long a, long b, long c) {
             this.instruction = instruction;
-            this.register = new ArrayList<>();
-            this.register.add(initial);
+            this.a = a;
+            this.b = b;
+            this.c = c;
         }
 
-        String calculateResult() {
-
+        List<Integer> calculateResult() {
             final List<Integer> output = new ArrayList<>();
             while (pointer < instruction.length) {
 
-                final State state = register.getLast();
-                final OpCode opCode = OpCode.of(instruction[pointer++]);
+                final int opCode = instruction[pointer++];
                 final int operand = instruction[pointer++];
-                final int combo = determineOperand(operand, state);
+                final long combo = determineCombo(operand);
 
                 switch (opCode) {
-                case ADV -> {
-                    final long v = (long) (state.a() / Math.pow(2, combo));
-                    register.add(state.ofA((int) v));
-                }
-                case BXL -> {
-                    final int v = state.b() ^ operand;
-                    register.add(state.ofB(v));
-                }
-                case BST -> {
-                    final int v = combo % 8;
-                    register.add(state.ofB(v));
-                }
-                case JNZ -> {
-                    if (state.a() != 0) {
-                        pointer = operand;
-                    }
-                }
-                case BXC -> {
-                    final int v = state.b() ^ state.c();
-                    register.add(state.ofB(v));
-                }
-                case OUT -> output.add(combo % 8);
-                case BDV -> {
-                    final int v = (int) (state.a() / Math.pow(2, combo));
-                    register.add(state.ofB(v));
-                }
-                case CDV -> {
-                    final int v = (int) (state.a() / Math.pow(2, combo));
-                    register.add(state.ofC(v));
-                }
+                case 0 -> a = (long) (a / Math.pow(2, combo));
+                case 1 -> b = b ^ operand;
+                case 2 -> b = combo % 8;
+                case 3 -> pointer = a != 0 ? operand : pointer;
+                case 4 -> b = b ^ c;
+                case 5 -> output.add((int) (combo % 8));
+                case 6 -> b = (long) (a / Math.pow(2, combo));
+                case 7 -> c = (long) (a / Math.pow(2, combo));
+                default -> throw new IllegalStateException("Unexpected value: " + opCode);
                 }
             }
-            resetState();
-            return output.stream().map(String::valueOf).collect(Collectors.joining(","));
 
+            return output;
         }
 
-        private void resetState() {
-            pointer = 0;
-            final State initialState = register.getFirst();
-            register.clear();
-            register.add(initialState);
-
-        }
-
-        private int determineOperand(final int operand, final State state) {
-            int value = -1;
-            if (operand <= 3) {
-                value = operand;
-            }
-            if (operand == 4) {
-                value = state.a();
-            }
-            if (operand == 5) {
-                value = state.b();
-            }
-            if (operand == 6) {
-                value = state.c();
-            }
-            if (value == -1) {
-                throw new IllegalArgumentException("Invalid operand: " + operand);
-            }
-
-            return value;
-        }
-    }
-
-    record State(int a, int b, int c) {
-        State ofA(int newA) {
-            return new State(newA, b, c);
-        }
-
-        State ofB(int newB) {
-            return new State(a, newB, c);
-        }
-
-        State ofC(int newC) {
-            return new State(a, b, newC);
-        }
-    }
-
-    enum OpCode {
-        ADV(0), // podziel A przez 2 do potęgi operand and store to A
-        BXL(1), // bitwise XOR of registry B with operand
-        BST(2), // modulo 8 od operand and save to registry B
-        JNZ(3), // if A != 0 jump to operand value
-        BXC(4), // bitwise XOR of registry B and C and stores result in B
-        OUT(5), // modulo 8 of operand and output it
-        BDV(6), // podziel B przez 2 do potęgi operand and store to B
-        CDV(7); // podziel C przez 2 do potęgi operand and store to C
-
-        private int value;
-
-        OpCode(int value) {
-            this.value = value;
-        }
-
-        static OpCode of(int value) {
-            return Arrays.stream(OpCode.values())
-                    .filter(o -> o.value == value)
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException("Invalid opcode: " + value));
+        private long determineCombo(final int operand) {
+            return switch (operand) {
+                case 0, 1, 2, 3 -> operand;
+                case 4 -> a;
+                case 5 -> b;
+                case 6 -> c;
+                default -> throw new IllegalStateException("Unexpected value: " + operand);
+            };
         }
 
     }
+
 }

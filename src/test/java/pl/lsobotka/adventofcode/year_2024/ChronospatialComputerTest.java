@@ -28,4 +28,18 @@ class ChronospatialComputerTest extends BaseTest {
         assertEquals(expected, actual);
     }
 
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("2024/ChronospatialComputer_example_3", 117440), //
+                Arguments.of("2024/ChronospatialComputer", 202991746427434L));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    void secondStarTest(final String fileName, final long expected) {
+        final List<String> lines = getFileInput(fileName);
+        final ChronospatialComputer computer = new ChronospatialComputer(lines);
+        final long actual = computer.findLowestInitialState();
+        assertEquals(expected, actual);
+    }
+
 }
