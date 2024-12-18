@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
+import java.util.stream.IntStream;
 
 import pl.lsobotka.adventofcode.utils.Coord;
 
@@ -54,6 +55,27 @@ public class RamRun {
         }
 
         return steps;
+    }
+
+    String determineWhenNotPossible() {
+        final int time = testRange(IntStream.range(0, bytes.size()).boxed().toList());
+        final Coord coord = bytes.get(time - 1);
+        return String.format("%d,%d", coord.col(), coord.row());
+    }
+
+    int testRange(final List<Integer> range) {
+
+        final int middleIndex = Math.max(0, (range.size() / 2) - 1);
+        final int testTimeValue = range.get(middleIndex);
+        final int steps = countStepsAfter(testTimeValue);
+
+        if (range.size() == 1 || (middleIndex == 0 && steps == 0)) {
+            return range.getFirst();
+        }
+
+        return steps == 0
+                ? testRange(range.subList(0, middleIndex + 1)) // Left half
+                : testRange(range.subList(middleIndex + 1, range.size())); // Right half
     }
 
     private boolean onBoard(final Coord coord) {

@@ -26,4 +26,18 @@ class RamRunTest extends BaseTest {
         final int actual = ramRun.countStepsAfter(time);
         assertEquals(expected, actual);
     }
+
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("2024/RamRun_example", 6, "6,1"), //
+                Arguments.of("2024/RamRun", 70, "24,48"));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    void secondStarTest(final String fileName, final int size, final String expected) {
+        final List<String> lines = getFileInput(fileName);
+        final RamRun ramRun = new RamRun(lines, size);
+        final String actual = ramRun.determineWhenNotPossible();
+        assertEquals(expected, actual);
+    }
 }
