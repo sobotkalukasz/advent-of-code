@@ -27,4 +27,18 @@ class LinenLayoutTest extends BaseTest {
         assertEquals(expected, actual);
     }
 
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("2024/LinenLayout_example", 16), //
+                Arguments.of("2024/LinenLayout", 848076019766013L));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    void secondStarTest(final String fileName, final long expected) {
+        final List<String> lines = getFileInput(fileName);
+        final LinenLayout linenLayout = new LinenLayout(lines);
+        final long actual = linenLayout.countPossibleWays();
+        assertEquals(expected, actual);
+    }
+
 }

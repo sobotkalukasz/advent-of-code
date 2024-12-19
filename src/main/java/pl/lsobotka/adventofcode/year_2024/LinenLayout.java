@@ -27,6 +27,10 @@ public class LinenLayout {
         return patterns.stream().filter(this::isPatternPossible).count();
     }
 
+    long countPossibleWays() {
+        return patterns.stream().parallel().filter(this::isPatternPossible).mapToLong(this::countPossibleWays).sum();
+    }
+
     private boolean isPatternPossible(final String pattern) {
 
         final Queue<Path> paths = new PriorityQueue<>(Comparator.comparingInt(Path::pointer).reversed());
@@ -58,6 +62,25 @@ public class LinenLayout {
             }
         }
         return true;
+    }
+
+    private long countPossibleWays(String pattern) {
+        int length = pattern.length();
+        long[] dp = new long[length + 1];
+        dp[0] = 1;
+
+        for (int i = 0; i < length; i++) {
+            if (dp[i] > 0) {
+                char actual = pattern.charAt(i);
+                for (String towel : towels.getOrDefault(actual, Collections.emptyList())) {
+                    if (pattern.startsWith(towel, i)) {
+                        dp[i + towel.length()] += dp[i];
+                    }
+                }
+            }
+        }
+
+        return dp[length];
     }
 
     record Path(int pointer) {
