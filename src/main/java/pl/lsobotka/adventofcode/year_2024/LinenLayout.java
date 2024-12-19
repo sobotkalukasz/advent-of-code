@@ -3,6 +3,9 @@ package pl.lsobotka.adventofcode.year_2024;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/*
+ * https://adventofcode.com/2024/day/19
+ * */
 public class LinenLayout {
 
     Map<Character, List<String>> towels;
@@ -43,25 +46,13 @@ public class LinenLayout {
             }
             final char actual = pattern.charAt(current.pointer);
             for (String towel : towels.getOrDefault(actual, Collections.emptyList())) {
-                if (canMatchTowel(pattern, current.pointer, towel)) {
+                if (pattern.startsWith(towel, current.pointer)) {
                     paths.add(new Path(current.pointer + towel.length()));
                 }
             }
         }
 
         return false;
-    }
-
-    private boolean canMatchTowel(String pattern, int startPointer, String towel) {
-        if (startPointer + towel.length() > pattern.length()) {
-            return false;
-        }
-        for (int i = 1; i < towel.length(); i++) {
-            if (pattern.charAt(startPointer + i) != towel.charAt(i)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     private long countPossibleWays(String pattern) {

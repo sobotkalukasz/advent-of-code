@@ -5,6 +5,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/*
+ * https://adventofcode.com/2024/day/17
+ * */
 public class ChronospatialComputer {
     private int[] instructions;
     private long a;

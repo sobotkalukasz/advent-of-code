@@ -13,6 +13,9 @@ import java.util.stream.IntStream;
 
 import pl.lsobotka.adventofcode.utils.Coord;
 
+/*
+ * https://adventofcode.com/2024/day/18
+ * */
 public class RamRun {
 
     final List<Coord> bytes;
