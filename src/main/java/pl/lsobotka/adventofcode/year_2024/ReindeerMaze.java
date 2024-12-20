@@ -2,6 +2,7 @@ package pl.lsobotka.adventofcode.year_2024;
 
 import java.util.*;
 
+import pl.lsobotka.adventofcode.utils.Board;
 import pl.lsobotka.adventofcode.utils.Coord;
 import pl.lsobotka.adventofcode.utils.Dir;
 
@@ -24,38 +25,22 @@ public class ReindeerMaze {
         return maze.countTiles();
     }
 
-    record Maze(Set<Coord> walls, Coord start, Coord finish) {
+    record Maze(Board board) {
 
         static Maze from(List<String> input) {
-            final Set<Coord> walls = new HashSet<>();
-            Coord start = null;
-            Coord finish = null;
-
-            for (int row = 0; row < input.size(); row++) {
-                final String rowS = input.get(row);
-                for (int col = 0; col < rowS.length(); col++) {
-                    switch (rowS.charAt(col)) {
-                    case '#' -> walls.add(Coord.of(row, col));
-                    case 'E' -> finish = Coord.of(row, col);
-                    case 'S' -> start = Coord.of(row, col);
-                    default -> { // Do nothing
-                    }
-                    }
-                }
-            }
-            return new Maze(walls, start, finish);
+            return new Maze(Board.from(input));
         }
 
         long getBestScore() {
             final Queue<MazePath> paths = new PriorityQueue<>(Comparator.comparingLong(MazePath::score));
-            paths.add(MazePath.of(start, Dir.RIGHT, 0));
+            paths.add(MazePath.of(board.start(), Dir.RIGHT, 0));
             final Map<Coord, Long> scoreCache = new HashMap<>();
 
             long score = 0;
             while (!paths.isEmpty()) {
                 final MazePath actual = paths.poll();
                 final Coord actualCoord = actual.state().coord();
-                if (actualCoord.equals(finish)) {
+                if (board.isEnd(actualCoord)) {
                     score = actual.score();
                     break;
                 }
@@ -64,7 +49,7 @@ public class ReindeerMaze {
                     scoreCache.put(actualCoord, actual.score());
                     for (Dir dir : Dir.values()) {
                         final Coord adjacent = actualCoord.getAdjacent(dir);
-                        if (!walls.contains(adjacent)) {
+                        if (!board().isWall(adjacent)) {
                             final MazePath mazePath = actual.next(adjacent, dir,
                                     rotateCost(actual.state().dir(), dir) + 1);
                             paths.add(mazePath);
@@ -79,7 +64,7 @@ public class ReindeerMaze {
 
         long countTiles() {
             final Queue<MazePath> paths = new PriorityQueue<>(Comparator.comparingLong(MazePath::score));
-            paths.add(MazePath.of(start, Dir.RIGHT, 0));
+            paths.add(MazePath.of(board.start(), Dir.RIGHT, 0));
 
             final Map<State, Long> scoreCache = new HashMap<>();
             final Set<Coord> path = new HashSet<>();
@@ -88,7 +73,7 @@ public class ReindeerMaze {
 
             while (!paths.isEmpty()) {
                 final MazePath actual = paths.poll();
-                if (actual.state().coord().equals(finish)) {
+                if (board().isEnd(actual.state().coord())) {
                     if (actual.score() == bestScore) {
                         path.addAll(actual.path());
                     }
@@ -100,7 +85,7 @@ public class ReindeerMaze {
                     scoreCache.put(actual.state(), actual.score());
                     for (Dir dir : Dir.values()) {
                         final Coord adjacent = actual.state().coord().getAdjacent(dir);
-                        if (!walls.contains(adjacent)) {
+                        if (!board.isWall(adjacent)) {
                             final MazePath mazePath = actual.next(adjacent, dir,
                                     rotateCost(actual.state().dir(), dir) + 1);
                             paths.add(mazePath);

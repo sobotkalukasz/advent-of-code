@@ -69,4 +69,8 @@ public record Coord(int row, int col) {
     public Coord moveBy(final Coord o) {
         return new Coord(row + o.row, col + o.col);
     }
+
+    public int distance(final Coord other) {
+        return Math.abs(this.row - other.row()) + Math.abs(this.col - other.col());
+    }
 }
