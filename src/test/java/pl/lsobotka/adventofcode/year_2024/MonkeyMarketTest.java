@@ -28,4 +28,18 @@ class MonkeyMarketTest extends BaseTest {
         assertEquals(expected, actual);
     }
 
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("2024/MonkeyMarket_example_2", 2000, 23), //
+                Arguments.of("2024/MonkeyMarket", 2000, 2_100));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    void secondStarTest(final String fileName, final int time, final long expected) {
+        final List<Integer> lines = getFileInputAsInteger(fileName);
+        final MonkeyMarket monkeyMarket = new MonkeyMarket(lines);
+        final long actual = monkeyMarket.mostBananas(time);
+        assertEquals(expected, actual);
+    }
+
 }
