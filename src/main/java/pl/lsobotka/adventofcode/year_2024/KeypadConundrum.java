@@ -14,45 +14,24 @@ import pl.lsobotka.adventofcode.utils.Rotate;
  * */
 class KeypadConundrum {
 
-    private final Pattern PATTERN = Pattern.compile("^0*(\\d+)[A-Za-z]$");
+    private static final Pattern PATTERN = Pattern.compile("^0*(\\d+)[A-Za-z]$");
 
     private final List<String> numbers;
     private final Control control;
 
     KeypadConundrum(final List<String> numbers, final int controlQty) {
         this.numbers = numbers;
-        this.control = prepareControls(controlQty);
+        this.control = Control.ofSize(controlQty);
     }
 
-    long determineComplexity() {
-
-        final Map<String, List<Character>> pressedButtons = new TreeMap<>();
+    long countPressedButtons() {
+        final Map<String, Long> pressedButtons = new HashMap<>();
         for (String number : numbers) {
             final List<Character> buttonsToPress = number.chars().mapToObj(c -> (char) c).toList();
-            final List<Character> pressed = control.getButtons(buttonsToPress);
-            pressedButtons.put(number, pressed);
+            final long buttonsSize = control.getButtonsSize(buttonsToPress);
+            pressedButtons.put(number, buttonsSize);
         }
-
-        return pressedButtons.entrySet().stream().mapToLong(e -> toNumber(e.getKey()) * e.getValue().size()).sum();
-    }
-
-    private static Control prepareControls(int controlQty) {
-        final Keypad numeric = Keypad.numeric();
-        final Keypad control = Keypad.control();
-
-        final List<Control> controls = new ArrayList<>();
-
-        for (int i = 0; i < controlQty + 1; i++) {
-            if (i == 0) {
-                controls.add(new Control(numeric));
-            } else {
-                final Control next = new Control(control);
-                controls.add(next);
-                controls.get(i - 1).setNext(next);
-            }
-        }
-
-        return controls.getFirst();
+        return pressedButtons.entrySet().stream().mapToLong(e -> toNumber(e.getKey()) * e.getValue()).sum();
     }
 
     private long toNumber(final String number) {
@@ -65,42 +44,69 @@ class KeypadConundrum {
 
     static class Control {
         private static final char CONFIRM = 'A';
-        Control next;
         final Keypad keypad;
+        final Map<CacheKey, Long> cache;
+        Control next;
         char current;
 
         public Control(Keypad keypad) {
             this.keypad = keypad;
             this.current = CONFIRM;
+            this.cache = new HashMap<>();
         }
 
-        void setNext(Control next) {
+        static Control ofSize(final int size) {
+            final Keypad numeric = Keypad.numeric();
+            final Keypad control = Keypad.control();
+
+            final List<Control> controls = new ArrayList<>();
+
+            for (int i = 0; i < size + 1; i++) {
+                if (i == 0) {
+                    controls.add(new Control(numeric));
+                } else {
+                    final Control next = new Control(control);
+                    controls.add(next);
+                    controls.get(i - 1).setNext(next);
+                }
+            }
+
+            return controls.getFirst();
+        }
+
+        private void setNext(Control next) {
             this.next = next;
         }
 
-        List<Character> getButtons(final List<Character> toPress) {
-            final List<Character> path = new ArrayList<>();
+        long getButtonsSize(final List<Character> toPress) {
+            long size = 0;
 
             if (next == null) {
-                path.addAll(toPress);
+                size += toPress.size();
                 current = toPress.getLast();
             } else {
                 for (Character button : toPress) {
-                    List<List<Character>> paths = new ArrayList<>();
-                    if (current != button) {
-                        paths = keypad.getPath(current, button);
+                    final CacheKey key = new CacheKey(current, button);
+                    if (cache.containsKey(key)) {
+                        size += cache.get(key);
                     } else {
-                        paths.add(new ArrayList<>());
+                        final List<List<Character>> paths =
+                                current != button ? keypad.getPath(current, button) : List.of(new ArrayList<>());
+                        final Long nextSize = paths.stream().map(list -> {
+                            list.add(CONFIRM);
+                            return next.getButtonsSize(list);
+                        }).reduce(Long::min).orElse(0L);
+                        cache.put(key, nextSize);
+                        size += nextSize;
                     }
-                    paths.stream().map(list -> {
-                        list.add(CONFIRM);
-                        return next.getButtons(list);
-                    }).reduce((list1, list2) -> list1.size() <= list2.size() ? list1 : list2).ifPresent(path::addAll);
                     current = button;
                 }
             }
 
-            return path;
+            return size;
+        }
+
+        record CacheKey(char from, char to) {
         }
 
     }
@@ -252,9 +258,9 @@ class KeypadConundrum {
             }
         }
 
-    }
+        record Button(char code, Coord coord) {
+        }
 
-    record Button(char code, Coord coord) {
     }
 
 }

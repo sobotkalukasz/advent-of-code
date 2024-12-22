@@ -24,15 +24,15 @@ class KeypadConundrumTest extends BaseTest {
                 Arguments.of("2024/KeypadConundrum_example_D", 3, 29_184), //
                 Arguments.of("2024/KeypadConundrum_example_E", 3, 24_256), //
                 Arguments.of("2024/KeypadConundrum", 3, 162_740),
-                Arguments.of("2024/KeypadConundrum", 26, -1));
+                Arguments.of("2024/KeypadConundrum", 26, 203_640_915_832_208L));
     }
 
     @ParameterizedTest
     @MethodSource("firstStar")
-    void firstStarTest(final String fileName, int controlQty, final int expected) {
+    void firstStarTest(final String fileName, int controlQty, final long expected) {
         final List<String> lines = getFileInput(fileName);
         final KeypadConundrum keypadConundrum = new KeypadConundrum(lines, controlQty);
-        final long actual = keypadConundrum.determineComplexity();
+        final long actual = keypadConundrum.countPressedButtons();
         assertEquals(expected, actual);
     }
 
