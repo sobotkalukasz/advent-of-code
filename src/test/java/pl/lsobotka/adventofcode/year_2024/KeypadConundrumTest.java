@@ -23,7 +23,8 @@ class KeypadConundrumTest extends BaseTest {
                 Arguments.of("2024/KeypadConundrum_example_C", 3, 12_172), //
                 Arguments.of("2024/KeypadConundrum_example_D", 3, 29_184), //
                 Arguments.of("2024/KeypadConundrum_example_E", 3, 24_256), //
-                Arguments.of("2024/KeypadConundrum", 3, -1)); //164_988 to high
+                Arguments.of("2024/KeypadConundrum", 3, 162_740),
+                Arguments.of("2024/KeypadConundrum", 26, -1));
     }
 
     @ParameterizedTest

@@ -33,10 +33,6 @@ class KeypadConundrum {
             pressedButtons.put(number, pressed);
         }
 
-        pressedButtons.forEach((k, v) -> System.out.println(
-                k + " = " + v.stream().map(String::valueOf).collect(Collectors.joining())));
-        pressedButtons.forEach((k, v) -> System.out.println(k + " = " + v.size()));
-
         return pressedButtons.entrySet().stream().mapToLong(e -> toNumber(e.getKey()) * e.getValue().size()).sum();
     }
 
@@ -90,12 +86,16 @@ class KeypadConundrum {
                 current = toPress.getLast();
             } else {
                 for (Character button : toPress) {
-                    final List<Character> currentPath = new ArrayList<>();
+                    List<List<Character>> paths = new ArrayList<>();
                     if (current != button) {
-                        currentPath.addAll(keypad.getPath(current, button));
+                        paths = keypad.getPath(current, button);
+                    } else {
+                        paths.add(new ArrayList<>());
                     }
-                    currentPath.add(CONFIRM);
-                    path.addAll(next.getButtons(currentPath));
+                    paths.stream().map(list -> {
+                        list.add(CONFIRM);
+                        return next.getButtons(list);
+                    }).reduce((list1, list2) -> list1.size() <= list2.size() ? list1 : list2).ifPresent(path::addAll);
                     current = button;
                 }
             }
@@ -105,7 +105,7 @@ class KeypadConundrum {
 
     }
 
-    record Keypad(List<Button> buttons, Map<Character, Map<Character, List<Character>>> paths) {
+    record Keypad(List<Button> buttons, Map<Character, Map<Character, List<List<Character>>>> paths) {
         static Keypad numeric() {
             final List<Button> buttons = new ArrayList<>();
             buttons.add(new Button('7', Coord.of(0, 0)));
@@ -132,9 +132,10 @@ class KeypadConundrum {
             return new Keypad(buttons, calculatePaths(buttons));
         }
 
-        private static Map<Character, Map<Character, List<Character>>> calculatePaths(final List<Button> buttons) {
+        private static Map<Character, Map<Character, List<List<Character>>>> calculatePaths(
+                final List<Button> buttons) {
             final Set<Coord> coords = buttons.stream().map(Button::coord).collect(Collectors.toSet());
-            final Map<Character, Map<Character, List<Character>>> shortest = new HashMap<>();
+            final Map<Character, Map<Character, List<List<Character>>>> shortest = new HashMap<>();
 
             for (int first = 0; first < buttons.size() - 1; first++) {
                 for (int second = first + 1; second < buttons.size(); second++) {
@@ -149,22 +150,25 @@ class KeypadConundrum {
                     paths.add(Path.empty(start.coord));
 
                     int bestChange = Integer.MAX_VALUE;
+                    int minSize = Integer.MAX_VALUE;
 
                     while (!paths.isEmpty()) {
                         final Path current = paths.poll();
-                        if (current.changeCount() >= bestChange) {
+                        if (current.changeCount() > bestChange) {
                             continue;
                         }
 
                         if (current.coord.equals(finish.coord)) {
-                            final Map<Character, List<Character>> innerStart = shortest.computeIfAbsent(start.code,
-                                    v -> new HashMap<>());
-                            final Map<Character, List<Character>> innerFinish = shortest.computeIfAbsent(finish.code,
-                                    v -> new HashMap<>());
+                            final Map<Character, List<List<Character>>> innerStart = shortest.computeIfAbsent(
+                                    start.code, v -> new HashMap<>());
+                            final Map<Character, List<List<Character>>> innerFinish = shortest.computeIfAbsent(
+                                    finish.code, v -> new HashMap<>());
 
-                            innerStart.put(finish.code, toChars(current.dirs));
-                            innerFinish.put(start.code, toChars(reverseDirList(current.dirs)));
+                            innerStart.computeIfAbsent(finish.code, v -> new ArrayList<>()).add(toChars(current.dirs));
+                            innerFinish.computeIfAbsent(start.code, v -> new ArrayList<>())
+                                    .add(toChars(reverseDirList(current.dirs)));
                             bestChange = current.changeCount();
+                            minSize = Math.min(minSize, current.dirs.size());
                         } else {
                             for (Dir dir : Dir.values()) {
                                 final Coord next = current.coord.getAdjacent(dir);
@@ -176,14 +180,29 @@ class KeypadConundrum {
 
                     }
 
+                    final int bestSize = minSize;
+                    final List<List<Character>> fromList = shortest.get(start.code).get(finish.code);
+                    fromList.removeIf(l -> l.size() > bestSize);
+
+                    final List<List<Character>> toList = shortest.get(finish.code).get(start.code);
+                    toList.removeIf(l -> l.size() > bestSize);
+
                 }
             }
 
             return shortest;
         }
 
-        public List<Character> getPath(char start, char finish) {
-            return paths.getOrDefault(start, Collections.emptyMap()).getOrDefault(finish, Collections.emptyList());
+        public List<List<Character>> getPath(char start, char finish) {
+            final List<List<Character>> original = paths.getOrDefault(start, Collections.emptyMap())
+                    .getOrDefault(finish, Collections.emptyList());
+
+            List<List<Character>> copy = new ArrayList<>();
+            for (List<Character> inner : original) {
+                copy.add(new ArrayList<>(inner));
+            }
+
+            return copy;
         }
 
         private static List<Dir> reverseDirList(List<Dir> dirs) {
