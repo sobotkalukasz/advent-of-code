@@ -27,4 +27,18 @@ class LanPartyTest extends BaseTest {
         assertEquals(expected, actual);
     }
 
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("2024/LanParty_example", "co,de,ka,ta"), //
+                Arguments.of("2024/LanParty", "hf,hz,lb,lm,ls,my,ps,qu,ra,uc,vi,xz,yv"));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    void secondStarTest(final String fileName, final String expected) {
+        final List<String> lines = getFileInput(fileName);
+        final LanParty lanParty = new LanParty(lines);
+        final String actual = lanParty.getPassword();
+        assertEquals(expected, actual);
+    }
+
 }
