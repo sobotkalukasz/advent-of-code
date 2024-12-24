@@ -1,23 +1,21 @@
 package pl.lsobotka.adventofcode.year_2024;
 
-import java.util.ArrayDeque;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+/*
+ * https://adventofcode.com/2024/day/24
+ * */
 class CrossedWires {
 
     private final Map<String, Boolean> wires;
-    private final Queue<Connection> connections;
+    private final List<Connection> connections;
 
     CrossedWires(final List<String> input) {
         this.wires = new HashMap<>();
-        this.connections = new ArrayDeque<>();
+        this.connections = new ArrayList<>();
 
         for (String line : input) {
             if (line.contains(":")) {
@@ -27,17 +25,17 @@ class CrossedWires {
                 connections.add(Connection.from(line));
             }
         }
-
     }
 
     long determineNumber() {
+        final Queue<Connection> con = new ArrayDeque<>(connections);
 
-        while (!connections.isEmpty()) {
-            Connection connection = connections.poll();
+        while (!con.isEmpty()) {
+            Connection connection = con.poll();
             if (connection.canSolve(wires)) {
                 wires.put(connection.output(), connection.solve(wires));
             } else {
-                connections.add(connection);
+                con.add(connection);
             }
         }
 
@@ -49,6 +47,18 @@ class CrossedWires {
                 .collect(Collectors.joining());
 
         return Long.parseLong(binary, 2);
+    }
+
+    String swapWires() {
+        final List<Connection> incorrect = new ArrayList<>();
+
+        for (final Connection c : connections) {
+            if (!c.isCorrect(connections)) {
+                incorrect.add(c);
+            }
+        }
+
+        return incorrect.stream().map(Connection::output).sorted().collect(Collectors.joining(","));
     }
 
     String toIntString(final boolean value) {
@@ -85,9 +95,64 @@ class CrossedWires {
                 case XOR -> v1 ^ v2;
             };
         }
+
+        boolean isCorrect(final List<Connection> connections) {
+            boolean correct = true;
+            if (this.isEnd() && this.isNotLastBit() && !this.is(Operation.XOR)) {
+                correct = false;
+            } else if (this.isMiddle() && this.is(Operation.XOR)) {
+                correct = false;
+            } else if (this.isStart() && this.isNotFirstBit() && this.is(Operation.XOR)) {
+                correct = false;
+                for (final Connection other : connections) {
+                    if (this.isNext(other) && other.is(Operation.XOR)) {
+                        correct = true;
+                        break;
+                    }
+                }
+            } else if (this.isStart() && this.isNotFirstBit() && this.is(Operation.AND)) {
+                correct = false;
+                for (final Connection other : connections) {
+                    if (this.isNext(other) && other.is(Operation.OR)) {
+                        correct = true;
+                        break;
+                    }
+                }
+            }
+            return correct;
+        }
+
+        private boolean isStart() {
+            return wire1.startsWith("x") || wire2.startsWith("x") || wire1.startsWith("y") || wire2.startsWith("y");
+        }
+
+        private boolean isEnd() {
+            return output.startsWith("z");
+        }
+
+        private boolean isMiddle() {
+            return !isStart() && !isEnd();
+        }
+
+        private boolean isNotFirstBit() {
+            return !wire1.endsWith("00") && !wire2.endsWith("00");
+        }
+
+        private boolean isNotLastBit() {
+            return !output.endsWith("45");
+        }
+
+        private boolean is(Operation op) {
+            return this.op == op;
+        }
+
+        private boolean isNext(final Connection other) {
+            return output.equals(other.wire1) || output.equals(other.wire2);
+        }
     }
 
     enum Operation {
         AND, OR, XOR
     }
+
 }

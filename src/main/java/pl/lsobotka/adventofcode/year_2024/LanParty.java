@@ -3,6 +3,9 @@ package pl.lsobotka.adventofcode.year_2024;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/*
+ * https://adventofcode.com/2024/day/23
+ * */
 public class LanParty {
 
     private final Map<String, Set<String>> connection;
