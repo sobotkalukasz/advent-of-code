@@ -72,9 +72,9 @@ public class SetAndForget {
 
         boolean searching = true;
         while (searching) {
-            final Coord nextMove = current.next(dir);
-            final Coord nextLeft = current.next(dir.rotate(Rotate.L));
-            final Coord nextRight = current.next(dir.rotate(Rotate.R));
+            final Coord nextMove = current.getAdjacent(dir);
+            final Coord nextLeft = current.getAdjacent(dir.rotate(Rotate.L));
+            final Coord nextRight = current.getAdjacent(dir.rotate(Rotate.R));
 
             if (map.contains(nextMove)) {
                 current = nextMove;

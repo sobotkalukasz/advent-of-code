@@ -116,7 +116,7 @@ public class BlizzardBasin {
         }
 
         Wind next(final Set<Coord> walls, final Coord bottomRight) {
-            Coord maybe = this.coord.next(this.dir);
+            Coord maybe = this.coord.getAdjacent(this.dir);
             if (walls.contains(maybe)) {
                 maybe = switch (this.dir) {
                     case UP -> Coord.of(bottomRight.row() - 1, maybe.col());
