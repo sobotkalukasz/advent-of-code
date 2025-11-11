@@ -2,7 +2,7 @@ package pl.lsobotka.adventofcode.year_2019;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 /*
@@ -15,12 +15,12 @@ public class NBodyProblem {
     public NBodyProblem(List<List<Integer>> moons) {
         this.moons = moons.stream()
                 .filter(m -> m.size() == 3)
-                .map(m -> new Moon(m.get(0), m.get(1), m.get(2)))
+                .map(m -> new Moon(m.getFirst(), m.get(1), m.get(2)))
                 .toList();
     }
 
     public long getMoonEnergyAfterSteps(int steps) {
-        final List<Moon> actual = moons.stream().map(Moon::copy).collect(Collectors.toList());
+        final List<Moon> actual = moons.stream().map(Moon::copy).toList();
 
         while (steps-- > 0) {
             applyStep(actual);
@@ -30,9 +30,9 @@ public class NBodyProblem {
     }
 
     public long countDaysToRepeat() {
-        final List<Moon> moonX = moons.stream().map(m -> new Moon(m.position.x(), 0, 0)).collect(Collectors.toList());
-        final List<Moon> moonY = moons.stream().map(m -> new Moon(0, m.position.y(), 0)).collect(Collectors.toList());
-        final List<Moon> moonZ = moons.stream().map(m -> new Moon(0, 0, m.position.z())).collect(Collectors.toList());
+        final List<Moon> moonX = moons.stream().map(m -> new Moon(m.position.x(), 0, 0)).toList();
+        final List<Moon> moonY = moons.stream().map(m -> new Moon(0, m.position.y(), 0)).toList();
+        final List<Moon> moonZ = moons.stream().map(m -> new Moon(0, 0, m.position.z())).toList();
 
         final long xFreq = getFrequency(moonX);
         final long yFreq = getFrequency(moonY);
@@ -42,7 +42,7 @@ public class NBodyProblem {
     }
 
     private long getFrequency(final List<Moon> initialState) {
-        final List<Moon> actual = initialState.stream().map(Moon::copy).collect(Collectors.toList());
+        final List<Moon> actual = initialState.stream().map(Moon::copy).toList();
 
         long cycle = 0;
         do {
@@ -108,6 +108,20 @@ public class NBodyProblem {
 
         private long kineticEnergy() {
             return Math.abs(velocity.x()) + Math.abs(velocity.y()) + Math.abs(velocity.z());
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            Moon moon = (Moon) o;
+            return Objects.equals(position, moon.position) && Objects.equals(velocity, moon.velocity);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(position, velocity);
         }
     }
 

@@ -17,8 +17,7 @@ public record Board(Set<Coord> walls, Coord start, Coord end) {
                 case '#' -> walls.add(Coord.of(row, col));
                 case 'E' -> end = Coord.of(row, col);
                 case 'S' -> start = Coord.of(row, col);
-                default -> { // Do nothing
-                }
+                default -> { /* do nothing */}
                 }
             }
         }
