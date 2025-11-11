@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
-import lombok.Getter;
-
 /*
  * https://adventofcode.com/2021/day/24
  * */
@@ -110,7 +108,7 @@ public class Alu {
         for (int i = 0; i < rawInstructions.size(); i++) {
             processInstructions(rawInstructions.get(i), value.get(i), result);
         }
-        return result.getZ();
+        return result.z;
     }
 
     private void processInstructions(final List<String> instructions, final int value, final Result result) {
@@ -130,7 +128,6 @@ public class Alu {
         });
     }
 
-    @Getter
     static class Result {
         int w;
         int x;

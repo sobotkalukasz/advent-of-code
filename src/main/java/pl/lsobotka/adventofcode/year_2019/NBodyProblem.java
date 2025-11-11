@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import lombok.EqualsAndHashCode;
-
 /*
  * https://adventofcode.com/2019/day/12
  * */
@@ -74,7 +72,6 @@ public class NBodyProblem {
         moons.forEach(Moon::applyVelocity);
     }
 
-    @EqualsAndHashCode
     static class Moon {
         private Point position;
         private Point velocity;
