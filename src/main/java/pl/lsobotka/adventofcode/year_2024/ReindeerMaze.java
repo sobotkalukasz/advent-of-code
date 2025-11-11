@@ -49,7 +49,7 @@ public class ReindeerMaze {
                     scoreCache.put(actualCoord, actual.score());
                     for (Dir dir : Dir.values()) {
                         final Coord adjacent = actualCoord.getAdjacent(dir);
-                        if (!board().isWall(adjacent)) {
+                        if (board().isNotWall(adjacent)) {
                             final MazePath mazePath = actual.next(adjacent, dir,
                                     rotateCost(actual.state().dir(), dir) + 1);
                             paths.add(mazePath);
@@ -85,7 +85,7 @@ public class ReindeerMaze {
                     scoreCache.put(actual.state(), actual.score());
                     for (Dir dir : Dir.values()) {
                         final Coord adjacent = actual.state().coord().getAdjacent(dir);
-                        if (!board.isWall(adjacent)) {
+                        if (board.isNotWall(adjacent)) {
                             final MazePath mazePath = actual.next(adjacent, dir,
                                     rotateCost(actual.state().dir(), dir) + 1);
                             paths.add(mazePath);

@@ -51,7 +51,7 @@ public class RaceCondition {
                 }
 
                 for (Coord next : path.c.getDirectAdjacent()) {
-                    if (!board.isWall(next) && visited.add(next)) {
+                    if (board.isNotWall(next) && visited.add(next)) {
                         paths.add(new Path(next, path.t + 1));
                     }
                 }

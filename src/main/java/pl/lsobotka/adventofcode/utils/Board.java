@@ -25,8 +25,8 @@ public record Board(Set<Coord> walls, Coord start, Coord end) {
         return new Board(walls, start, end);
     }
 
-    public boolean isWall(final Coord coord) {
-        return walls.contains(coord);
+    public boolean isNotWall(final Coord coord) {
+        return !walls.contains(coord);
     }
 
     public boolean isEnd(final Coord coord) {
