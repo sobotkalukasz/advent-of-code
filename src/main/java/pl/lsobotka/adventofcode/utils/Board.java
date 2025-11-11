@@ -4,12 +4,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public record Board(Set<Coord> walls, Coord start, Coord end, Coord corner) {
+public record Board(Set<Coord> walls, Coord start, Coord end) {
     public static Board from(final List<String> input) {
         Set<Coord> walls = new HashSet<>();
         Coord start = Coord.of(0, 0);
         Coord end = Coord.of(0, 0);
-        Coord corner = Coord.of(0, 0);
 
         for (int row = 0; row < input.size(); row++) {
             final String rowS = input.get(row);
@@ -21,10 +20,9 @@ public record Board(Set<Coord> walls, Coord start, Coord end, Coord corner) {
                 default -> { // Do nothing
                 }
                 }
-                corner = Coord.of(row, col);
             }
         }
-        return new Board(walls, start, end, corner);
+        return new Board(walls, start, end);
     }
 
     public boolean isWall(final Coord coord) {
