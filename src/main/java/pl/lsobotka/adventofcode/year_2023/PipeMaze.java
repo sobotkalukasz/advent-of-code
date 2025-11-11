@@ -226,7 +226,7 @@ public class PipeMaze {
         }
 
         Coord next(Coord from) {
-            final List<Coord> next = this.next();
+            final List<Coord> next = new ArrayList<>(this.next());
             next.remove(from);
             return next.getFirst();
         }
