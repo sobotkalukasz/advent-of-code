@@ -73,4 +73,13 @@ public record Coord(int row, int col) {
     public int distance(final Coord other) {
         return Math.abs(this.row - other.row()) + Math.abs(this.col - other.col());
     }
+
+    public Coord next(final Dir dir) {
+        return switch (dir) {
+            case UP -> Coord.of(this.row - 1, this.col);
+            case DOWN -> Coord.of(this.row + 1, this.col);
+            case LEFT -> Coord.of(this.row, this.col - 1);
+            case RIGHT -> Coord.of(this.row, this.col + 1);
+        };
+    }
 }

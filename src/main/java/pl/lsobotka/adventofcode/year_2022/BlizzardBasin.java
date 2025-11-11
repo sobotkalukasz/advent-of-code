@@ -2,6 +2,8 @@ package pl.lsobotka.adventofcode.year_2022;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import pl.lsobotka.adventofcode.utils.Coord;
+import pl.lsobotka.adventofcode.utils.Dir;
 
 /*
  * https://adventofcode.com/2022/day/24
@@ -103,35 +105,10 @@ public class BlizzardBasin {
         return paths.peek();
     }
 
-    record Coord(int row, int col) {
-        static Coord of(final int row, final int col) {
-            return new Coord(row, col);
-        }
-
-        Coord move(final Dir dir) {
-            return switch (dir) {
-                case UP -> Coord.of(this.row - 1, this.col);
-                case DOWN -> Coord.of(this.row + 1, this.col);
-                case LEFT -> Coord.of(this.row, this.col - 1);
-                case RIGHT -> Coord.of(this.row, this.col + 1);
-            };
-        }
-
-        Set<Coord> getAdjacentWithCurrent() {
-            final Set<Coord> adjacent = new HashSet<>();
-            adjacent.add(Coord.of(row - 1, col));
-            adjacent.add(Coord.of(row + 1, col));
-            adjacent.add(Coord.of(row, col - 1));
-            adjacent.add(Coord.of(row, col + 1));
-            adjacent.add(this);
-            return adjacent;
-        }
-    }
-
     record Wind(int id, Dir dir, Coord coord) {
 
         static boolean isWind(final char c) {
-            return Dir.symbols.contains(c);
+            return Dir.isDir(c);
         }
 
         static Wind of(final int id, final char c, final Coord coord) {
@@ -139,34 +116,16 @@ public class BlizzardBasin {
         }
 
         Wind next(final Set<Coord> walls, final Coord bottomRight) {
-            Coord maybe = this.coord.move(this.dir);
+            Coord maybe = this.coord.next(this.dir);
             if (walls.contains(maybe)) {
                 maybe = switch (this.dir) {
-                    case UP -> Coord.of(bottomRight.row - 1, maybe.col);
-                    case DOWN -> Coord.of(1, maybe.col);
-                    case LEFT -> Coord.of(maybe.row, bottomRight.col - 1);
-                    case RIGHT -> Coord.of(maybe.row, 1);
+                    case UP -> Coord.of(bottomRight.row() - 1, maybe.col());
+                    case DOWN -> Coord.of(1, maybe.col());
+                    case LEFT -> Coord.of(maybe.row(), bottomRight.col() - 1);
+                    case RIGHT -> Coord.of(maybe.row(), 1);
                 };
             }
             return new Wind(this.id, this.dir, maybe);
-        }
-
-    }
-
-    enum Dir {
-        UP('^'), DOWN('v'), LEFT('<'), RIGHT('>');
-        private static final Set<Character> symbols = Set.of('^', 'v', '<', '>');
-        final char symbol;
-
-        Dir(char symbol) {
-            this.symbol = symbol;
-        }
-
-        static Dir of(final char c) {
-            return Arrays.stream(Dir.values())
-                    .filter(w -> w.symbol == c)
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalStateException("Unknown Dir symbol: " + c));
         }
 
     }
@@ -179,9 +138,11 @@ public class BlizzardBasin {
         }
 
         Set<BasinPath> nextPossible(final Set<Coord> wind, final Set<Coord> wall, Coord bottomRight) {
-            return coord.getAdjacentWithCurrent()
+            final Set<Coord> directAdjacent = new HashSet<>(coord.getDirectAdjacent());
+            directAdjacent.add(coord);
+            return directAdjacent
                     .stream()
-                    .filter(c -> c.row > -1 && c.row < bottomRight.row + 1)
+                    .filter(c -> c.row() > -1 && c.row() < bottomRight.row() + 1)
                     .filter(c -> !wind.contains(c) && !wall.contains(c))
                     .map(c -> new BasinPath(c, moves + 1))
                     .collect(Collectors.toSet());
