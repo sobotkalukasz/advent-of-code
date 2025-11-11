@@ -1,26 +1,24 @@
 package pl.lsobotka.adventofcode.utils;
 
 import java.util.Arrays;
-import java.util.Set;
 
 public enum Dir {
 
     UP('^'), DOWN('v'), LEFT('<'), RIGHT('>');
 
-    private static final Set<Character> symbols = Set.of('^', 'v', '<', '>');
-    final char symbol;
+    final char code;
 
-    Dir(char symbol) {
-        this.symbol = symbol;
+    Dir(char code) {
+        this.code = code;
     }
 
-    public static boolean isDir(char c) {
-        return symbols.contains(c);
+    public static boolean isDir(final long code) {
+        return code == UP.code || code == DOWN.code || code == LEFT.code || code == RIGHT.code;
     }
 
-    public static Dir of(final char c) {
+    public static Dir of(final long c) {
         return Arrays.stream(Dir.values())
-                .filter(w -> w.symbol == c)
+                .filter(w -> w.code == c)
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Unknown Dir symbol: " + c));
     }

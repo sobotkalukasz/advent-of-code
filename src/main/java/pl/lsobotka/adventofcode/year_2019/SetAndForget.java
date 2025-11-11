@@ -3,6 +3,9 @@ package pl.lsobotka.adventofcode.year_2019;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import pl.lsobotka.adventofcode.utils.Coord;
+import pl.lsobotka.adventofcode.utils.Dir;
+import pl.lsobotka.adventofcode.utils.Rotate;
 
 /*
  * https://adventofcode.com/2019/day/17
@@ -27,7 +30,7 @@ public class SetAndForget {
     }
 
     long getAlignmentPattern() {
-        return map.stream().filter(this::isIntersection).mapToLong(c -> (long) c.row * c.col).sum();
+        return map.stream().filter(this::isIntersection).mapToLong(c -> (long) c.row() * c.col()).sum();
     }
 
     long collectTheDust() {
@@ -53,11 +56,11 @@ public class SetAndForget {
         final List<Long> execute = intCode.execute();
         printMap(execute);
 
-        return execute.get(execute.size() - 1);
+        return execute.getLast();
     }
 
     private boolean isIntersection(final Coord coord) {
-        final Set<Coord> adjacent = coord.getAdjacent();
+        final Set<Coord> adjacent = coord.getDirectAdjacent();
         return map.containsAll(adjacent);
     }
 
@@ -98,72 +101,6 @@ public class SetAndForget {
             }
         }
         return log;
-    }
-
-    private record Coord(int row, int col) {
-        static Coord of(final int row, final int col) {
-            return new Coord(row, col);
-        }
-
-        private Set<Coord> getAdjacent() {
-            final Set<Coord> adjacent = new HashSet<>();
-            adjacent.add(Coord.of(this.row + 1, this.col));
-            adjacent.add(Coord.of(this.row - 1, this.col));
-            adjacent.add(Coord.of(this.row, this.col + 1));
-            adjacent.add(Coord.of(this.row, this.col - 1));
-            return adjacent;
-        }
-
-        Coord next(final Dir dir) {
-            return switch (dir) {
-                case UP -> Coord.of(this.row - 1, this.col);
-                case DOWN -> Coord.of(this.row + 1, this.col);
-                case LEFT -> Coord.of(this.row, this.col - 1);
-                case RIGHT -> Coord.of(this.row, this.col + 1);
-            };
-        }
-    }
-
-    enum Dir {
-        UP('^'), DOWN('V'), LEFT('<'), RIGHT('>');
-
-        final char code;
-
-        Dir(char code) {
-            this.code = code;
-        }
-
-        Dir rotate(final Rotate r) {
-            return switch (this) {
-                case UP -> r == Rotate.R ? RIGHT : LEFT;
-                case DOWN -> r == Rotate.R ? LEFT : RIGHT;
-                case LEFT -> r == Rotate.R ? UP : DOWN;
-                case RIGHT -> r == Rotate.R ? DOWN : UP;
-            };
-        }
-
-        static boolean isDir(final long code) {
-            return code == Dir.UP.code || code == Dir.DOWN.code || code == Dir.LEFT.code || code == Dir.RIGHT.code;
-        }
-
-        static Dir from(final long code) {
-            final Dir dir;
-            if (code == Dir.UP.code) {
-                dir = Dir.UP;
-            } else if (code == Dir.DOWN.code) {
-                dir = Dir.DOWN;
-            } else if (code == Dir.LEFT.code) {
-                dir = Dir.LEFT;
-            } else {
-                dir = Dir.RIGHT;
-            }
-            return dir;
-        }
-
-    }
-
-    enum Rotate {
-        L, R
     }
 
     record Pos(Coord coord, Dir dir) {
@@ -333,7 +270,7 @@ public class SetAndForget {
         int col = 0;
         for (Long code : asciiCodes) {
             if (Dir.isDir(code)) {
-                start = new Pos(Coord.of(row, col), Dir.from(code));
+                start = new Pos(Coord.of(row, col), Dir.of(code));
                 break;
             } else if (code == '\n') {
                 col = 0;
