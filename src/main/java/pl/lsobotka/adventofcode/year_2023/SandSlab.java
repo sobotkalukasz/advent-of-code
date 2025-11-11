@@ -2,10 +2,9 @@ package pl.lsobotka.adventofcode.year_2023;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
-import pl.lsobotka.adventofcode.DimensionType;
 import pl.lsobotka.adventofcode.utils.Coord3d;
 import pl.lsobotka.adventofcode.utils.DimensionHolder;
+import pl.lsobotka.adventofcode.utils.DimensionType;
 
 public class SandSlab {
     private final List<Brick> bricks;

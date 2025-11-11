@@ -4,8 +4,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import pl.lsobotka.adventofcode.DimensionType;
-
 public record DimensionHolder(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
     public static DimensionHolder of(final Set<Coord3d> coords) {
         final int maxX = coords.stream().mapToInt(Coord3d::x).max().orElse(0);
