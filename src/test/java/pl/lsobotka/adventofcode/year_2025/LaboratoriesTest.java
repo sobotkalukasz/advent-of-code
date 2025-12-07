@@ -26,4 +26,18 @@ class LaboratoriesTest extends BaseTest {
         assertEquals(expected, actual);
     }
 
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("2025/Laboratories_example", 40),
+                Arguments.of("2025/Laboratories", 187987920774390L));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    void secondStarTest(final String fileName, final long expected) {
+        final List<String> input = getFileInput(fileName);
+        final Laboratories laboratories = new Laboratories(input);
+        final long actual = laboratories.countTimelines();
+        assertEquals(expected, actual);
+    }
+
 }
