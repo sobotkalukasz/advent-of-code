@@ -36,4 +36,11 @@ public record Coord3d(int x, int y, int z) {
         return Set.of(Coord3d.of(this.x, this.y, this.z + 1), //
                 Coord3d.of(this.x, this.y, this.z - 1));
     }
+
+    public long distanceTo(final Coord3d other) {
+        long dx = (long) other.x - this.x;
+        long dy = (long) other.y - this.y;
+        long dz = (long) other.z - this.z;
+        return dx * dx + dy * dy + dz * dz;
+    }
 }
