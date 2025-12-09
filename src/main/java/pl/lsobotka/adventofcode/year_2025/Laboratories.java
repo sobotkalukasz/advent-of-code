@@ -10,6 +10,9 @@ import java.util.concurrent.atomic.AtomicLong;
 import pl.lsobotka.adventofcode.utils.Coord;
 import pl.lsobotka.adventofcode.utils.Dir;
 
+/*
+ * https://adventofcode.com/2025/day/7
+ * */
 public class Laboratories {
 
     private Coord start;

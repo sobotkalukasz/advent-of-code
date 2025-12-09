@@ -9,6 +9,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import pl.lsobotka.adventofcode.utils.Coord3d;
 
+/*
+ * https://adventofcode.com/2025/day/8
+ * */
 public class Playground {
 
     final List<Coord3d> coords;

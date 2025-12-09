@@ -5,8 +5,14 @@ import java.util.List;
 import java.util.Set;
 
 public record Coord(int row, int col) {
+
     public static Coord of(final int row, final int col) {
         return new Coord(row, col);
+    }
+
+    public static Coord of(final String input) {
+        final String[] split = input.split(",");
+        return Coord.of(Integer.parseInt(split[0]), Integer.parseInt(split[1]));
     }
 
     public Set<Coord> getDirectAdjacent() {

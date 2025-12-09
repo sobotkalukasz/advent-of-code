@@ -7,6 +7,9 @@ import java.util.function.LongBinaryOperator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/*
+ * https://adventofcode.com/2025/day/6
+ * */
 public class TrashCompactor {
 
     private static final Pattern DIGIT_PATTERN = Pattern.compile("-?\\d+");
