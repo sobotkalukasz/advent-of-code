@@ -26,4 +26,18 @@ class MovieTheaterTest extends BaseTest {
         assertEquals(expected, actual);
     }
 
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("2025/MovieTheater_example", 24), //
+                Arguments.of("2025/MovieTheater", 1544362560L));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    void secondStarTest(final String fileName, final long expected) {
+        final List<String> input = getFileInput(fileName);
+        final MovieTheater movieTheater = new MovieTheater(input);
+        final long actual = movieTheater.largesAreaInside();
+        assertEquals(expected, actual);
+    }
+
 }
