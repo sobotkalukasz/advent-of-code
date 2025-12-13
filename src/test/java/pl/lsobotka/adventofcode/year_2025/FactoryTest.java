@@ -22,6 +22,20 @@ class FactoryTest extends BaseTest {
     void firstStarTest(final String fileName, final long expected) {
         final List<String> input = getFileInput(fileName);
         final Factory factory = new Factory(input);
+        final long actual = factory.countButtonToggle();
+        assertEquals(expected, actual);
+    }
+
+    private static Stream<Arguments> secondStar() {
+        return Stream.of(Arguments.of("2025/Factory_example", 33), //
+                Arguments.of("2025/Factory", 21111));
+    }
+
+    @ParameterizedTest
+    @MethodSource("secondStar")
+    void secondStarTest(final String fileName, final long expected) {
+        final List<String> input = getFileInput(fileName);
+        final Factory factory = new Factory(input);
         final long actual = factory.countButtonPress();
         assertEquals(expected, actual);
     }
